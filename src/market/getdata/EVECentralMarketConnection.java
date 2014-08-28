@@ -18,4 +18,16 @@ public class EVECentralMarketConnection extends URL_MarketConnection {
 			return null; 
 		}
 	}
+	
+	public Document getXMLDoc(String arg) {
+		try {
+		marketDataURL = new URL("http://api.eve-central.com/api/quicklook?typeid=" + arg + "&regionlimit=10000002&usesystem=30000142");
+		buildXMLDoc();
+		return doc;
+		
+		} catch (Exception e) {
+			//not really doing anything with this either
+			return null; 
+		}
+	}
 }

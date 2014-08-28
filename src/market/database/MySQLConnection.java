@@ -6,9 +6,9 @@ public class MySQLConnection {
 	private Statement statement;
 	private PreparedStatement preparedStatement;
 	private ResultSet resultSet;
-	
-	
+		
 	//mostly just testing this at this point.
+	//tested a few things
 	public void readDataBase() throws Exception {
 		Class.forName("com.mysql.jdbc.Driver");
 		connection = DriverManager.getConnection("jdbc:mysql://localhost/feedback?user=general");

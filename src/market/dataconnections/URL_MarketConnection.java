@@ -1,4 +1,4 @@
-package market.getdata;
+package market.dataconnections;
 
 import java.net.URL;
 import java.net.URLConnection;
@@ -8,7 +8,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
 
-
+//this class is abstract because it lacks complete implemntation details
+//no way to set or get the URLXML
 public abstract class URL_MarketConnection {
 	URL marketDataURL;
 	Document doc; 
@@ -22,7 +23,5 @@ public abstract class URL_MarketConnection {
 		} catch (Exception e) {
 			//doing nothing with this currently
 		}
-	}
-	
-	public abstract Document getXMLDoc();
+	}	
 }

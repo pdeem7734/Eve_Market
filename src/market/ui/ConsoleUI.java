@@ -10,7 +10,7 @@ import javax.xml.xpath.*;
 import org.w3c.dom.*;
 
 import market.database.MySQLMarketConnection;
-import market.getdata.*;
+import market.dataconnections.*;
 
 //completely lacks a console UI at this point ended up repurposing to write data to sql table.
 public class ConsoleUI {
@@ -39,9 +39,9 @@ public class ConsoleUI {
 			
 			while (resultSet.next()){
 				itemID = resultSet.getString("itemID");
-				Document xmlDoc = marketCon.getXMLDoc(itemID);
-				//simple entry point for the application at this point				
-				XPath xpath = XPathFactory.newInstance().newXPath();			
+				Document xmlDoc = marketCon.getXMLOrders(itemID);
+				//simple entry point for the application at this point
+				XPath xpath = XPathFactory.newInstance().newXPath();
 				
 				try {
 					//get nodes for the the sell/buy orders

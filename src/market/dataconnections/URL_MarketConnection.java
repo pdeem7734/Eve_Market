@@ -22,6 +22,8 @@ public abstract class URL_MarketConnection {
 			doc = parser.parse(dataConnection.getInputStream());
 		} catch (Exception e) {
 			//doing nothing with this currently
+			System.out.println("Document Creation Failed");
+			e.printStackTrace();
 		}
 	}	
 }

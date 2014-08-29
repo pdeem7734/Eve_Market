@@ -20,32 +20,23 @@ public abstract class DataTransfer {
 	NodeList buyList;
 	ArrayList <BigDecimal> sellArrayList = new ArrayList<BigDecimal>();
 	ArrayList <BigDecimal> buyArrayList = new ArrayList<BigDecimal>();
+
 	
-	//the market connection interface
-	URL_MarketConnection marketConection;
 	
 	//statements to comuniate with the database
 	Statement selectStatement;
 	Statement insertStatement;
 	ResultSet selectResultSet;
 	
-	public DataTransfer(SQL_Connection sqlCon, URL_MarketConnection marketCon) {
-		this.marketConection = marketCon;
-		try {
-			this.selectStatement = sqlCon.getMarketStatement();
-			this.insertStatement = sqlCon.getMarketStatement();
-		} catch (SQLException e) {
-			//doing nothing with this either 
-		} catch (ClassNotFoundException e) {
-			//doing nothing with this currently
-		}
-	}
-	
 	//this method would get all the market items and update their respective elements
-	public abstract void getAndTransferAll();
+	public abstract void getAndTransfer();
 	
 	//this will get and transfer only the listed itemID's
-	public abstract void getAndTranser(int[] itemIDs);
+	public abstract void getAndTransfer(String[] itemIDs);
 	
+	public abstract void getAndTranferMetaData();	
+	public abstract void getAndTransferOrders();
 	
+	public abstract void getAndTranferMetaData(String[] itemIDs);	
+	public abstract void getAndTransferOrders(String[] itemIDs);
 }

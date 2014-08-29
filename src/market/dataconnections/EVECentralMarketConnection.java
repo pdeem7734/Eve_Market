@@ -20,8 +20,9 @@ public class EVECentralMarketConnection extends URL_MarketConnection {
 	}
 
 	public Document getXMLMetaData(String[] itemIDs) {
-		// TODO Auto-generated method stub
+		//upto 100 items can be included in this request
 		try {
+			
 			StringBuilder urlBuilder = new StringBuilder();
 			urlBuilder.append("http://api.eve-central.com/api/marketstat?");
 			

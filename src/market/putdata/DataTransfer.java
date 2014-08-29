@@ -38,5 +38,6 @@ public abstract class DataTransfer {
 	public abstract void getAndTransferOrders();
 	
 	public abstract void getAndTranferMetaData(String[] itemIDs);	
-	public abstract void getAndTransferOrders(String[] itemIDs);
+	public abstract void getAndTransferOrders(String[] itemIDs);				
+
 }

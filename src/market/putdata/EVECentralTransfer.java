@@ -1,6 +1,7 @@
 package market.putdata;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.math.*;
 
 import javax.xml.xpath.*;
@@ -32,23 +33,17 @@ public class EVECentralTransfer extends DataTransfer {
 			selectResultSet = null;
 			
 			//transfer meta data first			
-			getAndTranferMetaData(itemIDList.toArray(new String[itemIDList.size()]));						
+			getAndTranferMetaData(itemIDList.toArray(new String[itemIDList.size()]));	
+			getAndTransferOrders(itemIDList.toArray(new String[itemIDList.size()]));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	public static void main(String[] args) {
-		EVECentralTransfer test = new EVECentralTransfer();
-		test.getAndTransfer();
-	}
-
 	@Override
 	public void getAndTransfer(String[] itemIDs) {
 		getAndTranferMetaData(itemIDs);
-		//commented out at this method is not ready yet
-		//getAndTransferOrders(itemIDs);
-		
+		getAndTransferOrders(itemIDs);		
 	}
 	
 	@Override
@@ -173,10 +168,50 @@ public class EVECentralTransfer extends DataTransfer {
 	@Override
 	//TODO: Finish this method
 	public void getAndTransferOrders(String[] itemIDs){
+		
 		ArrayList<Document> orderXMLs = new ArrayList<Document>();
 		for (String item : itemIDs) {
 			orderXMLs.add(urlMarketCon.getXMLOrders(item));
+			break;
 		}
+		
+		for (Document xmlDoc : orderXMLs) {
+			//simple entry point for the application at this point
+			XPath xpath = XPathFactory.newInstance().newXPath();
+			
+			try {
+				insertStatement = sqlCon.getMarketStatement();
+				//get nodes for the the sell/buy orders
+				sellList = (NodeList) xpath.evaluate("//sell_orders//order/price", xmlDoc, XPathConstants.NODESET);
+				buyList = (NodeList) xpath.evaluate("//buy_orders//order/price", xmlDoc, XPathConstants.NODESET);		
+				String itemID = (String) xpath.evaluate("//item", xmlDoc, XPathConstants.STRING);
+				//write the prices for each sell/buy order to the array list then sort it 
+				for (int k = 0; k < sellList.getLength(); k++){
+					Node n = sellList.item(k);
+					sellArrayList.add(new BigDecimal(n.getFirstChild().getNodeValue()));
+				}
+			
+				for (int k = 0; k < buyList.getLength(); k++){
+					Node n = buyList.item(k);
+					buyArrayList.add(new BigDecimal(n.getFirstChild().getNodeValue()));
+				}
+				
+				Collections.sort(buyArrayList);
+				Collections.sort(sellArrayList);
+				
+				String sellMin = String.valueOf(Collections.min(sellArrayList));
+				String buyMax = String.valueOf(Collections.max(buyArrayList));			
+				
+				insertStatement.execute(String.format("INSERT INTO HistoricalEVECentral (item_ID,sellmin,buymax) VALUES (%s,%s,%s)", 
+						itemID, sellMin, buyMax));					
+				sellArrayList.removeAll(sellArrayList);
+				buyArrayList.removeAll(buyArrayList);
+				
+			} catch (Exception e) {
+				//do nothing
+				e.printStackTrace();
+				System.out.println("Unable to connect or print to database");
+			}
+		}		
 	}
-
 }

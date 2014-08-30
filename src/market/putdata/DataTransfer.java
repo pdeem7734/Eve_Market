@@ -18,10 +18,9 @@ public abstract class DataTransfer {
 	//node/araay list for buy and sell orders
 	NodeList sellList;
 	NodeList buyList;
-	ArrayList <BigDecimal> sellArrayList = new ArrayList<BigDecimal>();
-	ArrayList <BigDecimal> buyArrayList = new ArrayList<BigDecimal>();
-
 	
+	ArrayList <BigDecimal> sellArrayList = new ArrayList<BigDecimal>();
+	ArrayList <BigDecimal> buyArrayList = new ArrayList<BigDecimal>();	
 	
 	//statements to comuniate with the database
 	Statement selectStatement;

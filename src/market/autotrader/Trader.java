@@ -12,9 +12,10 @@ public abstract class Trader {
 	Statement selectStatement;
 	
 	//maps with the key being the itemID
-	Map<Integer, BigDecimal> buyOrders;
-	Map<Integer, BigDecimal> sellOrders;
-	Map<Integer, BigDecimal[]> metaData;
+	HashMap<Integer, BigDecimal> buyOrders = new HashMap<Integer, BigDecimal>();
+	HashMap<Integer, BigDecimal> sellOrders = new HashMap<Integer, BigDecimal>();
+	HashMap<Integer, BigDecimal[]> metaData = new HashMap<Integer, BigDecimal[]>();
+	HashSet<Integer> itemIDs = new HashSet<Integer> ();
 	
 		
 	//will return the slected trades
@@ -47,6 +48,7 @@ public abstract class Trader {
 				int itemID = Integer.parseInt(selectResults.getString("item_id"));
 				buyOrders.put(itemID, new BigDecimal(selectResults.getString("BuyMax")));
 				sellOrders.put(itemID, new BigDecimal(selectResults.getString("SellMin")));
+				itemIDs.add(itemID);
 			}
 			
 			selectResults = null;
@@ -82,9 +84,6 @@ public abstract class Trader {
 				
 				metaData.put(itemID, tempArray);
 			}
-			
-			
-			
 		} catch (Exception e) {
 			System.out.println("unable to load metadata map");
 			e.printStackTrace();

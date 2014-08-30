@@ -101,7 +101,7 @@ public class EVECentralTransfer extends DataTransfer {
 		//will probably make it threaded
 		for (String item : itemIDs) {
 			metaDataXML.add(urlMarketCon.getXMLMetaData(new String[] {item}));
-			System.out.printf("Imported item %d of %d", k++, itemIDList.size());
+			System.out.printf("Imported Meta item %d of %d", k++, itemIDs.length);
 		}
 		
 		try {
@@ -170,9 +170,10 @@ public class EVECentralTransfer extends DataTransfer {
 	public void getAndTransferOrders(String[] itemIDs){
 		
 		ArrayList<Document> orderXMLs = new ArrayList<Document>();
+		int l = 1;
 		for (String item : itemIDs) {
 			orderXMLs.add(urlMarketCon.getXMLOrders(item));
-			break;
+			System.out.printf("Imported item %d of %d\n", l++, itemIDs.length);
 		}
 		
 		for (Document xmlDoc : orderXMLs) {

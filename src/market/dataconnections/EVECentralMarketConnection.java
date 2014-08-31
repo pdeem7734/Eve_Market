@@ -6,12 +6,13 @@ import java.sql.ResultSet;
 import org.w3c.dom.Document;
 
 public class EVECentralMarketConnection extends URL_MarketConnection {
-		
+	
+	//gets curent orders from eve central
 	public Document getXMLOrders(String typeID) {
 		try {
-		marketDataURL = new URL("http://api.eve-central.com/api/quicklook?typeid=" + typeID + "&regionlimit=10000002&usesystem=30000142");
-		buildXMLDoc();
-		return doc;
+			marketDataURL = new URL("http://api.eve-central.com/api/quicklook?typeid=" + typeID + "&regionlimit=10000002&usesystem=30000142");
+			buildXMLDoc();
+			return doc;
 		
 		} catch (Exception e) {
 			//not really doing anything with this either
@@ -19,8 +20,11 @@ public class EVECentralMarketConnection extends URL_MarketConnection {
 		}
 	}
 
+	//pulls meta data from eve central
+	//this data is for the past 24h and covers the 'blind spot' in the crest API
 	public Document getXMLMetaData(String[] itemIDs) {
 		//upto 100 items can be included in this request
+
 		try {
 			
 			StringBuilder urlBuilder = new StringBuilder();

@@ -46,7 +46,6 @@ public class EVECentralTransfer extends DataTransfer {
 		getAndTransferOrders(itemIDs);		
 	}
 	
-	@Override
 	public void getAndTranferMetaData(){
 		try {
 			//first we have to get all of the item ID's to import
@@ -70,7 +69,6 @@ public class EVECentralTransfer extends DataTransfer {
 		}
 	}
 	
-	@Override
 	public void getAndTransferOrders(){
 		try {
 			//first we have to get all of the item ID's to import
@@ -91,7 +89,6 @@ public class EVECentralTransfer extends DataTransfer {
 		}
 	}
 	
-	@Override
 	public void getAndTranferMetaData(String[] itemIDs){
 		//insert the meta data first
 		XPath xpath = XPathFactory.newInstance().newXPath();
@@ -116,7 +113,7 @@ public class EVECentralTransfer extends DataTransfer {
 			NodeList sellTemp;
 			
 			String query = "INSERT INTO metadata (itemid, buyvolume, buyavg, buymax, buymin, sellvolume," +
-					" sellavg, sellmax, sellmin)VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)";
+					" sellavg, sellmax, sellmin) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)";
 			for (Document doc : metaDataXML) {
 				try {
 				buyTemp = (NodeList) xpath.evaluate("//buy/volume", doc, XPathConstants.NODESET);
@@ -164,8 +161,7 @@ public class EVECentralTransfer extends DataTransfer {
 			e.printStackTrace();
 		}
 	}
-	
-	@Override
+
 	//TODO: Finish this method
 	public void getAndTransferOrders(String[] itemIDs){
 		

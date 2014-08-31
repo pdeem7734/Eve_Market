@@ -32,11 +32,5 @@ public abstract class DataTransfer {
 	
 	//this will get and transfer only the listed itemID's
 	public abstract void getAndTransfer(String[] itemIDs);
-	
-	public abstract void getAndTranferMetaData();	
-	public abstract void getAndTransferOrders();
-	
-	public abstract void getAndTranferMetaData(String[] itemIDs);	
-	public abstract void getAndTransferOrders(String[] itemIDs);				
 
 }

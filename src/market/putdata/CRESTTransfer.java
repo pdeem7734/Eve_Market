@@ -105,8 +105,8 @@ public class CRESTTransfer extends DataTransfer {
 		Boolean notLoadedURL = true;
 		
 		//the insert query that will be used to put the data elements into the database
-		String insertQuery = "INSERT INTO CRESTHistorical (itemID, Volume, orderCount, lowPrice, highPrice, marketDate)" 
-				+ "VALUES (%s, %s, %s, %s, %s, '%s')";
+		String insertQuery = "INSERT INTO CRESTHistorical (itemID, Volume, orderCount, lowPrice, highPrice, AvgPrice,marketDate)" 
+				+ "VALUES (%s, %s, %s, %s, %s, %s,'%s')";
 		
 		int attempts = 0;
 		public void run() {
@@ -129,7 +129,7 @@ public class CRESTTransfer extends DataTransfer {
 						temparray = urlMarketCon.getHistorical(itemID);
 						
 						//creating and instansiating the input here so values can't accidently carry over
-						String[] input = new String[6];
+						String[] input = new String[7];
 						JSONObject singleDayItem;						
 						
 						for (Object dayJSON : temparray) {
@@ -142,13 +142,14 @@ public class CRESTTransfer extends DataTransfer {
 							input[2] = String.valueOf(singleDayItem.get("orderCount"));
 							input[3] = String.valueOf(singleDayItem.get("lowPrice"));
 							input[4] = String.valueOf(singleDayItem.get("highPrice"));
-							input[5] = String.valueOf(singleDayItem.get("date")).substring(0,10);
+							input[5] = String.valueOf(singleDayItem.get("AvgPrice"));
+							input[6] = String.valueOf(singleDayItem.get("date")).substring(0,10);
 							
 							//insert the items, allow the concurrent access featrues of MySQL to control thread saftey here
 							//might be best at some point to create a blocking queue that another method can pull
 							//to place insert the items rather then having each thread do it independatly
 							localInsert.execute(String.format(insertQuery, input[0], input[1], 
-									input[2], input[3], input[4], input[5]));
+									input[2], input[3], input[4], input[5], input[6]));
 							
 						}
 						//if we have made it to this step without error all elements have been loaded correctly. 

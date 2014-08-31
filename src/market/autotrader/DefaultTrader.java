@@ -4,6 +4,8 @@ import market.database.*;
 import market.putdata.*; 
 
 import java.math.*;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 
@@ -41,6 +43,63 @@ public class DefaultTrader extends Trader {
 			finalTrades[i] = new String[] {potentialTrades[i].toString()};
 		}
 		return finalTrades;
+	}
+	
+	//this method will check the items listed and ensure there is not a signifignant downward trend in the last week
+	private Integer[] validateByTrend(Integer[] itemIDs) {
+		HashSet<Integer> validatedTrades = new HashSet<Integer>();
+		
+		ArrayList<BigDecimal> curentItemAverages = new ArrayList<BigDecimal>();
+		ArrayList<BigDecimal> priceDifferences = new ArrayList<BigDecimal>();
+		
+		//gets the dates and formats them the way MySQL will expect them 
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.DATE, -10);
+		String endDate = new SimpleDateFormat("MM-dd-yyyy").format(Calendar.getInstance().getTime());
+		String startDate = new SimpleDateFormat("MM-dd-yyyy").format(calendar.getTime());
+		
+		System.out.println(startDate + " " + endDate); 
+		ResultSet selectResults; 
+		String selectQuery = "SELECT * FROM CRESTHistorical WHERE ItemID = %d AND marketDate BETWEEN '%s' AND '%s'";
+		for (Integer itemID: itemIDs){ 
+			try {
+				//gathers the historical averages 
+				selectStatement = sqlConnection.getMarketStatement();
+				selectResults = selectStatement.executeQuery(String.format(selectQuery, itemID, startDate, endDate));
+				while (selectResults.next()) {
+					curentItemAverages.add(new BigDecimal(selectResults.getString("AvgPrice")));
+				}
+				
+				//calculates the average average across the days in question.
+				//as well as the difference between each days average and the curent days average
+				BigDecimal average = new BigDecimal(0);
+				for (BigDecimal big : curentItemAverages) {
+					average = average.add(big);
+					priceDifferences.add(big.subtract(curentItemAverages.get(curentItemAverages.size() - 1)));
+				}
+				average = average.divide(new BigDecimal(curentItemAverages.size()));
+				
+				//calculate average change -1 because the price difference contained today - today
+				BigDecimal averageChange = new BigDecimal(0);
+				for (BigDecimal big: priceDifferences) {
+					averageChange = averageChange.add(big);
+				}
+				averageChange = averageChange.divide(new BigDecimal(priceDifferences.size() - 1));
+				
+				//item has been validated
+				if (averageChange.compareTo(average.multiply(new BigDecimal(.05))) < 0 
+						&& averageChange.compareTo(average.multiply(new BigDecimal(-.05))) > 0) {
+					validatedTrades.add(itemID);
+				}
+				
+			} catch (Exception e) {
+				//unable to validate item for one reason or another 
+				System.out.println("New thing Borke");
+				e.printStackTrace();
+			}
+		}
+		
+		return validatedTrades.toArray(new Integer[validatedTrades.size()]);
 	}
 	
 	//validates that the trades passed to it have sufficent volume and return to be worth investing in.

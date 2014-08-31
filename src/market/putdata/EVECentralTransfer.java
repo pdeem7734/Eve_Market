@@ -156,6 +156,7 @@ public class EVECentralTransfer extends DataTransfer {
 				}
 			} 
 			metaDataXML.removeAll(metaDataXML);
+			insertStatement = null;
 		}catch (Exception e) {
 			System.out.println("Meta Data to SQL Failed");
 			e.printStackTrace();
@@ -172,12 +173,17 @@ public class EVECentralTransfer extends DataTransfer {
 			System.out.printf("Imported item %d of %d\n", l++, itemIDs.length);
 		}
 		
+		try {
+			insertStatement = sqlCon.getMarketStatement();
+		} catch (Exception e) {
+			//do nothing with this currently
+		}
+		
 		for (Document xmlDoc : orderXMLs) {
 			//simple entry point for the application at this point
 			XPath xpath = XPathFactory.newInstance().newXPath();
 			
 			try {
-				insertStatement = sqlCon.getMarketStatement();
 				//get nodes for the the sell/buy orders
 				sellList = (NodeList) xpath.evaluate("//sell_orders//order/price", xmlDoc, XPathConstants.NODESET);
 				buyList = (NodeList) xpath.evaluate("//buy_orders//order/price", xmlDoc, XPathConstants.NODESET);		

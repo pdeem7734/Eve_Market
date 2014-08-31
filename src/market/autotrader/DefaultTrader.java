@@ -31,7 +31,7 @@ public class DefaultTrader extends Trader {
 		for (Integer itemID : potentialTrades) {
 			tempList.add(itemID.toString());
 		}
-		ecTransfer.getAndTransfer(tempList.toArray(new String[tempList.size()]));
+		ecTransfer.getAndTransferOrders(tempList.toArray(new String[tempList.size()]));
 		ecTransfer = null;
 		
 		//check to ensure the trades still match criteria 
@@ -125,7 +125,7 @@ public class DefaultTrader extends Trader {
 			
 			//if the volume is over 200 items traded in the past 24h
 			//and the isk by 5%volume is over 10m validate the trade 
-			if (volume.compareTo(new BigDecimal(200)) > 0 && (iskByVolume.compareTo(new BigDecimal(10_000_000)) > 0)) {
+			if (volume.compareTo(new BigDecimal(200)) > 0 && (iskByVolume.compareTo(new BigDecimal(5_000_000)) > 0)) {
 				validatedTrades.add(itemID);
 			}
 		}
@@ -159,7 +159,7 @@ public class DefaultTrader extends Trader {
 				profitPercent = profitISK.divide(curentItemData[0],4,BigDecimal.ROUND_HALF_UP);
 				
 				//if the precentage is in the acceptable range add the item ID to the list
-				if (profitPercent.compareTo(new BigDecimal(.15)) > 0 && profitPercent.compareTo(new BigDecimal(.30)) < 0) {
+				if (profitPercent.compareTo(new BigDecimal(.15)) > 0 && profitPercent.compareTo(new BigDecimal(.50)) < 0) {
 					possibleTrades.add(itemID);
 				}
 				

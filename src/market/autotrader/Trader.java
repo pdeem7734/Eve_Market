@@ -40,10 +40,10 @@ public abstract class Trader {
 	
 	private void loadOrderMaps() {
 		try { 
-			ResultSet selectResults = selectStatement.executeQuery("SELECT * FROM historicalevecentral AS histEC INNER JOIN " 
+			ResultSet selectResults = selectStatement.executeQuery("SELECT * FROM evecentral AS histEC INNER JOIN " 
 					+ "itemtypes AS items "
 					+ "ON histEC.item_id = itemid AND histEC.datepulled = " 
-					+ "(SELECT MAX(datepulled) FROM historicalevecentral where item_id = histEC.item_id) ORDER BY items.itemid;");
+					+ "(SELECT MAX(datepulled) FROM evecentral where item_id = histEC.item_id) ORDER BY items.itemid;");
 			while (selectResults.next()){
 				int itemID = Integer.parseInt(selectResults.getString("item_id"));
 				buyOrders.put(itemID, new BigDecimal(selectResults.getString("BuyMax")));
@@ -62,10 +62,10 @@ public abstract class Trader {
 	
 	private void loadMetaMap() {
 		try {
-			ResultSet selectResults = selectStatement.executeQuery("SELECT * FROM historicalmetadata AS histMD INNER JOIN "
+			ResultSet selectResults = selectStatement.executeQuery("SELECT * FROM metadata AS histMD INNER JOIN "
 					+ "itemtypes AS items "
 					+ "ON histMD.itemid = items.itemid AND histMD.datepulled = " 
-					+ "(SELECT MAX(datepulled) FROM historicalmetadata where itemid = histMD.itemid) ORDER BY items.itemid;");
+					+ "(SELECT MAX(datepulled) FROM metadata where itemid = histMD.itemid) ORDER BY items.itemid;");
 			
 			
 			while (selectResults.next()) {

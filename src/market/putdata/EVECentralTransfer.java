@@ -115,7 +115,7 @@ public class EVECentralTransfer extends DataTransfer {
 			NodeList buyTemp;
 			NodeList sellTemp;
 			
-			String query = "INSERT INTO historicalmetadata (itemid, buyvolume, buyavg, buymax, buymin, sellvolume," +
+			String query = "INSERT INTO metadata (itemid, buyvolume, buyavg, buymax, buymin, sellvolume," +
 					" sellavg, sellmax, sellmin)VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)";
 			for (Document doc : metaDataXML) {
 				try {
@@ -203,7 +203,7 @@ public class EVECentralTransfer extends DataTransfer {
 				String sellMin = String.valueOf(Collections.min(sellArrayList));
 				String buyMax = String.valueOf(Collections.max(buyArrayList));			
 				
-				insertStatement.execute(String.format("INSERT INTO HistoricalEVECentral (item_ID,sellmin,buymax) VALUES (%s,%s,%s)", 
+				insertStatement.execute(String.format("INSERT INTO evecentral (item_ID,sellmin,buymax) VALUES (%s,%s,%s)", 
 						itemID, sellMin, buyMax));					
 				sellArrayList.removeAll(sellArrayList);
 				buyArrayList.removeAll(buyArrayList);

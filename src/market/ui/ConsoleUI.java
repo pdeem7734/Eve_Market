@@ -11,15 +11,20 @@ public class ConsoleUI {
 	//entry point for the application
 	//we will need to redefine to allow basic trading suggestings once trader/default trader have been defined
 	public static void main(String args[]){
-		startCRESTTransfer();
+		
 	}
 	
 	private static void startCRESTTransfer() {
 		CRESTTransfer ct = new CRESTTransfer();
 		ct.getAndTransfer();
 	}
+	private static void startCRESTTransfer(String[] itemIDs) {
+		CRESTTransfer ct = new CRESTTransfer();
+		ct.getAndTransfer();
+	}
 	
-	private static void getTrades() {
+	
+	private static void getDefaultTrades() {
 		Trader newTrader = new DefaultTrader();
 		String[][] suggestedTrades = newTrader.suggestTrades();
 		

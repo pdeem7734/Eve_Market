@@ -37,7 +37,8 @@ public class DefaultTrader extends Trader {
 		//check to ensure the trades still match criteria 
 		potentialTrades = searchOrders(potentialTrades);
 		
-		//return the itemID's for the trades we have pulled 
+		//return the itemID's for the trades we have pulled
+		potentialTrades = validateByTrend(potentialTrades);
 		finalTrades = new String[potentialTrades.length][];
 		for (int i = 0; i < potentialTrades.length; i++) {
 			finalTrades[i] = new String[] {potentialTrades[i].toString()};
@@ -47,27 +48,33 @@ public class DefaultTrader extends Trader {
 	
 	//this method will check the items listed and ensure there is not a signifignant downward trend in the last week
 	private Integer[] validateByTrend(Integer[] itemIDs) {
-		HashSet<Integer> validatedTrades = new HashSet<Integer>();
-		
+		HashSet<Integer> validatedTrades = new HashSet<Integer>();		
 		ArrayList<BigDecimal> curentItemAverages = new ArrayList<BigDecimal>();
 		ArrayList<BigDecimal> priceDifferences = new ArrayList<BigDecimal>();
+		
+		try {
+			selectStatement = sqlConnection.getMarketStatement();
+		} catch (Exception e) {
+			//add logging
+		}
+		
 		
 		//gets the dates and formats them the way MySQL will expect them 
 		Calendar calendar = Calendar.getInstance();
 		calendar.add(Calendar.DATE, -10);
-		String endDate = new SimpleDateFormat("MM-dd-yyyy").format(Calendar.getInstance().getTime());
-		String startDate = new SimpleDateFormat("MM-dd-yyyy").format(calendar.getTime());
+		String endDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
+		String startDate = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
 		
-		System.out.println(startDate + " " + endDate); 
 		ResultSet selectResults; 
 		String selectQuery = "SELECT * FROM CRESTHistorical WHERE ItemID = %d AND marketDate BETWEEN '%s' AND '%s'";
+		
 		for (Integer itemID: itemIDs){ 
 			try {
-				//gathers the historical averages 
-				selectStatement = sqlConnection.getMarketStatement();
+				//gathers the historical averages 				
 				selectResults = selectStatement.executeQuery(String.format(selectQuery, itemID, startDate, endDate));
+
 				while (selectResults.next()) {
-					curentItemAverages.add(new BigDecimal(selectResults.getString("AvgPrice")));
+					curentItemAverages.add(new BigDecimal(selectResults.getString("avgPrice")));
 				}
 				
 				//calculates the average average across the days in question.
@@ -77,18 +84,17 @@ public class DefaultTrader extends Trader {
 					average = average.add(big);
 					priceDifferences.add(big.subtract(curentItemAverages.get(curentItemAverages.size() - 1)));
 				}
-				average = average.divide(new BigDecimal(curentItemAverages.size()));
+				average = average.divide(new BigDecimal(curentItemAverages.size()), 4);
 				
 				//calculate average change -1 because the price difference contained today - today
 				BigDecimal averageChange = new BigDecimal(0);
 				for (BigDecimal big: priceDifferences) {
 					averageChange = averageChange.add(big);
 				}
-				averageChange = averageChange.divide(new BigDecimal(priceDifferences.size() - 1));
+				averageChange = averageChange.divide(new BigDecimal(priceDifferences.size() - 1), 4);
 				
 				//item has been validated
-				if (averageChange.compareTo(average.multiply(new BigDecimal(.05))) < 0 
-						&& averageChange.compareTo(average.multiply(new BigDecimal(-.05))) > 0) {
+				if (averageChange.compareTo(average.multiply(new BigDecimal(-.08))) > 0) {
 					validatedTrades.add(itemID);
 				}
 				
@@ -96,6 +102,7 @@ public class DefaultTrader extends Trader {
 				//unable to validate item for one reason or another 
 				System.out.println("New thing Borke");
 				e.printStackTrace();
+				break;
 			}
 		}
 		
@@ -108,25 +115,47 @@ public class DefaultTrader extends Trader {
 		BigDecimal profitISK;
 		BigDecimal volume;
 		BigDecimal iskByVolume;
+		String date = "";
 		
 		//the set of trades that have been validated
 		HashSet<Integer> validatedTrades = new HashSet<Integer>();
 		
+		Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.DATE, -4);		
+		date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+		try {
+			selectStatement = sqlConnection.getMarketStatement();			
+		} catch (Exception e) {/*doing nothing with this right now*/}
+		
+		
+		
+		
+		
 		//iterate though all passed item ID's
 		for (Integer itemID : itemIDs) {
 			curentItemData = metaData.get(itemID);
-			
-			//gets the profit in isk multiplied by 5% of the total market volume over 24h
-			//5% might be a bit high for expected market impact but will adjust as needed
-			profitISK = curentItemData[1].subtract(curentItemData[0]);
-			volume = curentItemData[0].add(curentItemData[4]);
-			volume = volume.multiply(new BigDecimal(.05));
-			iskByVolume = volume.multiply(profitISK);
-			
-			//if the volume is over 200 items traded in the past 24h
-			//and the isk by 5%volume is over 10m validate the trade 
-			if (volume.compareTo(new BigDecimal(200)) > 0 && (iskByVolume.compareTo(new BigDecimal(5_000_000)) > 0)) {
-				validatedTrades.add(itemID);
+			ResultSet selectResults = null;
+			try {
+				selectResults = selectStatement.executeQuery("SELECT * FROM CrestHistorical WHERE ItemID =" + itemID
+						+ " ORDER BY marketdate desc LIMIT 1");
+
+				//gets the profit in isk multiplied by 5% of the total market volume over 24h
+				//5% might be a bit high for expected market impact but will adjust as needed
+				
+				if (selectResults.next()){
+					profitISK = curentItemData[1].subtract(curentItemData[0]);
+					volume = new BigDecimal(selectResults.getString("Volume"));					
+					iskByVolume = volume.multiply(profitISK).multiply(new BigDecimal(.05));
+					
+					//if the volume is over 200 items traded in the past 24h
+					//and the isk by 5%volume is over 10m validate the trade 
+					if (volume.compareTo(new BigDecimal(200)) > 0 && (iskByVolume.compareTo(new BigDecimal(1_000_000)) > 0)) {
+						validatedTrades.add(itemID);
+						System.out.println(itemID + " Validated");
+					}
+				}
+				} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
 		//return all validated trades

@@ -7,8 +7,7 @@ import java.sql.*;
 import market.database.*;
 public abstract class Trader {
 	
-	SQL_Connection sqlConnection;
-	
+	SQL_Connection sqlConnection;	
 	Statement selectStatement;
 	
 	//maps with the key being the itemID

@@ -105,7 +105,7 @@ public class CRESTTransfer extends DataTransfer {
 		Boolean notLoadedURL = true;
 		
 		//the insert query that will be used to put the data elements into the database
-		String insertQuery = "INSERT INTO CRESTHistorical (itemID, Volume, orderCount, lowPrice, highPrice, AvgPrice,marketDate)" 
+		String insertQuery = "INSERT INTO CRESTHistorical (itemID, Volume, orderCount, lowPrice, highPrice, AvgPrice, marketDate)" 
 				+ "VALUES (%s, %s, %s, %s, %s, %s,'%s')";
 		
 		int attempts = 0;
@@ -142,7 +142,7 @@ public class CRESTTransfer extends DataTransfer {
 							input[2] = String.valueOf(singleDayItem.get("orderCount"));
 							input[3] = String.valueOf(singleDayItem.get("lowPrice"));
 							input[4] = String.valueOf(singleDayItem.get("highPrice"));
-							input[5] = String.valueOf(singleDayItem.get("AvgPrice"));
+							input[5] = String.valueOf(singleDayItem.get("avgPrice"));
 							input[6] = String.valueOf(singleDayItem.get("date")).substring(0,10);
 							
 							//insert the items, allow the concurrent access featrues of MySQL to control thread saftey here
@@ -158,6 +158,11 @@ public class CRESTTransfer extends DataTransfer {
 					} catch(IOException e) {
 						e.printStackTrace();
 						attempts ++;
+						try {
+							Thread.sleep(100);
+						} catch (Exception p){
+							
+						}
 					} catch (Exception e) {
 						//doing nothing with this current;y
 					}

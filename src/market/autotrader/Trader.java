@@ -27,6 +27,7 @@ public abstract class Trader {
 	
 	//this will reload the maps with new information from the database 
 	public void loadMaps() {
+		//ensure we can connect to the database
 		try {
 			selectStatement = sqlConnection.getMarketStatement();
 		} catch (Exception e) {
@@ -37,20 +38,22 @@ public abstract class Trader {
 		loadMetaMap();
 	}
 	
-	
+	//loads the order from the MySQL server
 	private void loadOrderMaps() {
 		try { 
+			//runs a select query on the most recent orders
 			ResultSet selectResults = selectStatement.executeQuery("SELECT * FROM evecentral AS histEC INNER JOIN " 
 					+ "itemtypes AS items "
 					+ "ON histEC.item_id = itemid AND histEC.datepulled = " 
 					+ "(SELECT MAX(datepulled) FROM evecentral where item_id = histEC.item_id) ORDER BY items.itemid;");
+			
+			//iterates though all and adds to map
 			while (selectResults.next()){
 				int itemID = Integer.parseInt(selectResults.getString("item_id"));
 				buyOrders.put(itemID, new BigDecimal(selectResults.getString("BuyMax")));
 				sellOrders.put(itemID, new BigDecimal(selectResults.getString("SellMin")));
 				itemIDs.add(itemID);
 			}
-			
 			selectResults = null;
 			
 		} catch (Exception e) {
@@ -59,17 +62,17 @@ public abstract class Trader {
 		}
 	}
 	
-	
+	//loads mets data
 	private void loadMetaMap() {
 		try {
+			//runs select query that will only contain the most recent meta data
 			ResultSet selectResults = selectStatement.executeQuery("SELECT * FROM metadata AS histMD INNER JOIN "
 					+ "itemtypes AS items "
 					+ "ON histMD.itemid = items.itemid AND histMD.datepulled = " 
 					+ "(SELECT MAX(datepulled) FROM metadata where itemid = histMD.itemid) ORDER BY items.itemid;");
 			
-			
+			//add all the meta data to the map
 			while (selectResults.next()) {
-				//silly but i don't know of a way around this
 				BigDecimal[] tempArray = new BigDecimal[8];
 				tempArray[0] = new BigDecimal(selectResults.getString("BuyVolume"));
 				tempArray[1] = new BigDecimal(selectResults.getString("BuyAvg"));
@@ -81,6 +84,7 @@ public abstract class Trader {
 				tempArray[7] = new BigDecimal(selectResults.getString("SellMin"));
 				
 				int itemID = Integer.parseInt(selectResults.getString("itemID"));
+				
 				
 				metaData.put(itemID, tempArray);
 			}

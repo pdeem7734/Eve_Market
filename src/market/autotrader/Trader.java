@@ -14,7 +14,8 @@ public abstract class Trader {
 	HashMap<Integer, BigDecimal> buyOrders = new HashMap<Integer, BigDecimal>();
 	HashMap<Integer, BigDecimal> sellOrders = new HashMap<Integer, BigDecimal>();
 	HashMap<Integer, BigDecimal[]> metaData = new HashMap<Integer, BigDecimal[]>();
-	HashSet<Integer> itemIDs = new HashSet<Integer> ();
+	HashMap<Integer, BigDecimal> orderVolume = new HashMap<Integer, BigDecimal>();
+	HashMap<Integer, String> itemIDs = new HashMap<Integer, String> ();
 	
 		
 	//will return the slected trades
@@ -35,6 +36,7 @@ public abstract class Trader {
 		}
 		loadOrderMaps();
 		loadMetaMap();
+		loadCREST();
 	}
 	
 	//loads the order from the MySQL server
@@ -51,13 +53,28 @@ public abstract class Trader {
 				int itemID = Integer.parseInt(selectResults.getString("item_id"));
 				buyOrders.put(itemID, new BigDecimal(selectResults.getString("BuyMax")));
 				sellOrders.put(itemID, new BigDecimal(selectResults.getString("SellMin")));
-				itemIDs.add(itemID);
+				itemIDs.put(itemID, selectResults.getString("itemName"));
 			}
 			selectResults = null;
 			
 		} catch (Exception e) {
 			System.out.println("unable to load order maps");
 			e.printStackTrace();
+		}
+	}
+	
+	private void loadCREST() {
+		for (Integer itemID : itemIDs.keySet()) {
+			try {
+				ResultSet selectResults = selectStatement.executeQuery(String.format("SELECT DISTINCT * FROM CRESTHistorical WHERE ItemID = %d ORDER BY MarketDate DESC LIMIT 1", itemID));
+				if (selectResults.next()) {
+					orderVolume.put(itemID, new BigDecimal(selectResults.getString("Volume")));
+				} else {
+					orderVolume.put(itemID, new BigDecimal(0));
+				}
+			} catch (Exception e) {
+				//add error logging 
+			}
 		}
 	}
 	

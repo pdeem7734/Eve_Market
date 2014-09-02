@@ -19,7 +19,7 @@ public class DefaultTrader extends Trader {
 	@Override
 	public String[][] suggestTrades() {
 		String[][] finalTrades; 
-		Integer[] potentialTrades = itemIDs.toArray(new Integer[itemIDs.size()]);
+		Integer[] potentialTrades = itemIDs.keySet().toArray(new Integer[itemIDs.size()]);
 		
 		//search and validate
 		potentialTrades = searchOrders(potentialTrades);
@@ -43,8 +43,10 @@ public class DefaultTrader extends Trader {
 		//validate trades against historical trending 
 		potentialTrades = validateByTrend(potentialTrades);
 		finalTrades = new String[potentialTrades.length][];
+		
+		//returns a string array for each trade. 
 		for (int i = 0; i < potentialTrades.length; i++) {
-			finalTrades[i] = new String[] {potentialTrades[i].toString()};
+			finalTrades[i] = new String[] {itemIDs.get(Integer.parseInt(potentialTrades[i].toString())), potentialTrades[i].toString()};
 		}
 		return finalTrades;
 	}
@@ -60,13 +62,6 @@ public class DefaultTrader extends Trader {
 		} catch (Exception e) {
 			//add logging
 		}
-		
-		
-		//gets the dates and formats them the way MySQL will expect them 
-		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.DATE, -10);
-		String endDate = new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime());
-		String startDate = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
 		
 		ResultSet selectResults; 
 		String selectQuery = "SELECT DISTINCT * FROM CRESTHistorical WHERE ItemID = %d ORDER BY MarketDate DESC LIMIT 10";
@@ -118,42 +113,27 @@ public class DefaultTrader extends Trader {
 		BigDecimal[] curentItemData;
 		BigDecimal profitISK;
 		BigDecimal volume;
-		BigDecimal iskByVolume;
-		String date = "";
-		
+		BigDecimal iskByVolume;		
 		//the set of trades that have been validated
 		HashSet<Integer> validatedTrades = new HashSet<Integer>();
-		
-		Calendar calendar = Calendar.getInstance();
-		calendar.add(Calendar.DATE, -4);		
-		date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
-		try {
-			selectStatement = sqlConnection.getMarketStatement();			
-		} catch (Exception e) {/*doing nothing with this right now*/}		
-		
+
 		//iterate though all passed item ID's
 		for (Integer itemID : itemIDs) {
 			curentItemData = metaData.get(itemID);
-			ResultSet selectResults = null;
 			try {
-				selectResults = selectStatement.executeQuery("SELECT * FROM CrestHistorical WHERE ItemID =" + itemID
-						+ " ORDER BY marketdate DESC LIMIT 1");
 
-					//gets the profit in isk multiplied by 5% of the total market volume over 24h
-					//5% might be a bit high for expected market impact but will adjust as needed
+				//gets the profit in isk multiplied by 5% of the total market volume over 24h
+				//5% might be a bit high for expected market impact but will adjust as needed
+				profitISK = curentItemData[1].subtract(curentItemData[0]);
+				volume = orderVolume.get(itemID);		
+				iskByVolume = volume.multiply(profitISK).multiply(new BigDecimal(.05));
 				
-					if (selectResults.next()){
-						profitISK = curentItemData[1].subtract(curentItemData[0]);
-						volume = new BigDecimal(selectResults.getString("Volume"));					
-						iskByVolume = volume.multiply(profitISK).multiply(new BigDecimal(.05));
-						//if the volume is over 200 items traded in the past 24h
-						//and the isk by 5%volume is over 10m validate the trade
-						
-						if (volume.compareTo(new BigDecimal("200")) > 0 && (iskByVolume.compareTo(new BigDecimal(1_000_000)) > 0)) {
-							validatedTrades.add(itemID);
-						}
-					}
-				} catch (Exception e) {
+				//if the volume is over 200 items traded in the past 24h
+				//and the isk by 5%volume is over 10m validate the trade				
+				if (volume.compareTo(new BigDecimal("200")) > 0 && (iskByVolume.compareTo(new BigDecimal(1_000_000)) > 0)) {
+					validatedTrades.add(itemID);
+				}
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

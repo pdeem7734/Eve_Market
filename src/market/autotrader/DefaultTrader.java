@@ -28,9 +28,12 @@ public class DefaultTrader extends Trader {
 		//update the current prices for the items that have been selected and validated 
 		EVECentralTransfer ecTransfer = new EVECentralTransfer();		
 		ArrayList<String> tempList = new ArrayList<String>();
+		
 		for (Integer itemID : potentialTrades) {
 			tempList.add(itemID.toString());
 		}
+		
+		//updated orders elected
 		ecTransfer.getAndTransferOrders(tempList.toArray(new String[tempList.size()]));
 		ecTransfer = null;
 		
@@ -46,7 +49,7 @@ public class DefaultTrader extends Trader {
 		return finalTrades;
 	}
 	
-	//this method will check the items listed and ensure there is not a signifignant downward trend in the last week
+	//this method will check the items listed and ensure there is not a signifignant downward trend in the last 10 days
 	private Integer[] validateByTrend(Integer[] itemIDs) {
 		HashSet<Integer> validatedTrades = new HashSet<Integer>();		
 		ArrayList<BigDecimal> curentItemAverages = new ArrayList<BigDecimal>();

@@ -37,7 +37,7 @@ public class DefaultTrader extends Trader {
 		//check to ensure the trades still match criteria 
 		potentialTrades = searchOrders(potentialTrades);
 		
-		//return the itemID's for the trades we have pulled
+		//validate trades against historical trending 
 		potentialTrades = validateByTrend(potentialTrades);
 		finalTrades = new String[potentialTrades.length][];
 		for (int i = 0; i < potentialTrades.length; i++) {
@@ -66,23 +66,26 @@ public class DefaultTrader extends Trader {
 		String startDate = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
 		
 		ResultSet selectResults; 
-		String selectQuery = "SELECT * FROM CRESTHistorical WHERE ItemID = %d AND marketDate BETWEEN '%s' AND '%s'";
+		String selectQuery = "SELECT DISTINCT * FROM CRESTHistorical WHERE ItemID = %d ORDER BY MarketDate DESC LIMIT 10";
 		
 		for (Integer itemID: itemIDs){ 
 			try {
 				//gathers the historical averages 				
-				selectResults = selectStatement.executeQuery(String.format(selectQuery, itemID, startDate, endDate));
-
+				selectResults = selectStatement.executeQuery(String.format(selectQuery, itemID));
+				
 				while (selectResults.next()) {
 					curentItemAverages.add(new BigDecimal(selectResults.getString("avgPrice")));
 				}
 				
 				//calculates the average average across the days in question.
-				//as well as the difference between each days average and the curent days average
+				//as well as the difference between each days average and the current days average
+				//zeroth index will be the most recent day
 				BigDecimal average = new BigDecimal(0);
 				for (BigDecimal big : curentItemAverages) {
 					average = average.add(big);
-					priceDifferences.add(big.subtract(curentItemAverages.get(curentItemAverages.size() - 1)));
+					
+					//most recent average - this average 
+					priceDifferences.add(curentItemAverages.get(0).subtract(big));
 				}
 				average = average.divide(new BigDecimal(curentItemAverages.size()), 4);
 				
@@ -92,15 +95,13 @@ public class DefaultTrader extends Trader {
 					averageChange = averageChange.add(big);
 				}
 				averageChange = averageChange.divide(new BigDecimal(priceDifferences.size() - 1), 4);
-				
+
 				//item has been validated
-				if (averageChange.compareTo(average.multiply(new BigDecimal(-.08))) > 0) {
+				if (averageChange.compareTo(average.multiply(new BigDecimal(-.05))) > 0) {
 					validatedTrades.add(itemID);
-				}
-				
+				}				
 			} catch (Exception e) {
 				//unable to validate item for one reason or another 
-				System.out.println("New thing Borke");
 				e.printStackTrace();
 				break;
 			}
@@ -125,11 +126,7 @@ public class DefaultTrader extends Trader {
 		date = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
 		try {
 			selectStatement = sqlConnection.getMarketStatement();			
-		} catch (Exception e) {/*doing nothing with this right now*/}
-		
-		
-		
-		
+		} catch (Exception e) {/*doing nothing with this right now*/}		
 		
 		//iterate though all passed item ID's
 		for (Integer itemID : itemIDs) {
@@ -137,23 +134,22 @@ public class DefaultTrader extends Trader {
 			ResultSet selectResults = null;
 			try {
 				selectResults = selectStatement.executeQuery("SELECT * FROM CrestHistorical WHERE ItemID =" + itemID
-						+ " ORDER BY marketdate desc LIMIT 1");
+						+ " ORDER BY marketdate DESC LIMIT 1");
 
-				//gets the profit in isk multiplied by 5% of the total market volume over 24h
-				//5% might be a bit high for expected market impact but will adjust as needed
+					//gets the profit in isk multiplied by 5% of the total market volume over 24h
+					//5% might be a bit high for expected market impact but will adjust as needed
 				
-				if (selectResults.next()){
-					profitISK = curentItemData[1].subtract(curentItemData[0]);
-					volume = new BigDecimal(selectResults.getString("Volume"));					
-					iskByVolume = volume.multiply(profitISK).multiply(new BigDecimal(.05));
-					
-					//if the volume is over 200 items traded in the past 24h
-					//and the isk by 5%volume is over 10m validate the trade 
-					if (volume.compareTo(new BigDecimal(200)) > 0 && (iskByVolume.compareTo(new BigDecimal(1_000_000)) > 0)) {
-						validatedTrades.add(itemID);
-						System.out.println(itemID + " Validated");
+					if (selectResults.next()){
+						profitISK = curentItemData[1].subtract(curentItemData[0]);
+						volume = new BigDecimal(selectResults.getString("Volume"));					
+						iskByVolume = volume.multiply(profitISK).multiply(new BigDecimal(.05));
+						//if the volume is over 200 items traded in the past 24h
+						//and the isk by 5%volume is over 10m validate the trade
+						
+						if (volume.compareTo(new BigDecimal("200")) > 0 && (iskByVolume.compareTo(new BigDecimal(1_000_000)) > 0)) {
+							validatedTrades.add(itemID);
+						}
 					}
-				}
 				} catch (Exception e) {
 				e.printStackTrace();
 			}

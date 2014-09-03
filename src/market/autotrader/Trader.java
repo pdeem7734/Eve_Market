@@ -107,18 +107,18 @@ public abstract class Trader {
 		}
 	}
 	
-	//loads mets data
+	//loads meta data
 	protected void loadMetaMap(Integer[] itemIDs) {
+	
 		String selectString = "SELECT * FROM metadata AS histMD INNER JOIN "
 				+ "itemtypes AS items "
 				+ "ON histMD.itemid = items.itemid AND histMD.datepulled = " 
-				+ "(SELECT MAX(datepulled) FROM metadata where itemid = histMD.itemid) ORDER BY items.itemid;";
+				+ "(SELECT MAX(datepulled) FROM metadata where itemid = histMD.itemid) WHERE items.itemid = %d ORDER BY items.itemid;";
 		try {
+			Statement selectCRESTStatement = sqlConnection.getMarketStatement();
 			//runs select query that will only contain the most recent meta data
 			for (Integer itemID : itemIDs){
 				ResultSet selectResults = selectStatement.executeQuery(String.format(selectString, itemID));
-				
-				Statement selectCRESTStatement = sqlConnection.getMarketStatement();
 				ResultSet selectCRESTResults = selectCRESTStatement.executeQuery(String.format("SELECT DISTINCT * FROM CRESTHistorical WHERE ItemID = %d ORDER BY MarketDate DESC LIMIT 1", itemID));
 
 				if (selectResults.next()) {

@@ -14,8 +14,7 @@ public class ConsoleUI {
 	//entry point for the application
 	//we will need to redefine to allow basic trading suggestings once trader/default trader have been defined
 	public static void main(String args[]){
-		DefaultTrader trade = new DefaultTrader();
-		trade.test();
+		getDefaultTrades();
 	}
 	
 	private static void startCRESTTransfer() {

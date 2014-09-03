@@ -14,4 +14,8 @@ public class MySQLMarketConnection implements SQL_Connection {
 		statement = connection.createStatement();
 		return statement;
 	}
+	//
+	public MySQLMarketConnection() {
+		
+	}
 }

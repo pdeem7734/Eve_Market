@@ -12,7 +12,22 @@ import java.util.*;
 public class DefaultTrader extends Trader {
 	public DefaultTrader() {
 		sqlConnection = new MySQLMarketConnection();
-		loadMaps();
+		try {
+			selectStatement = sqlConnection.getMarketStatement();
+		} catch (Exception e) {
+			System.out.println("unable to connect to database");
+			e.printStackTrace();
+		}
+	}
+	
+	public void test(){
+		loadItemIDs();
+		loadCrestInfo(10, new Integer[] {34});
+		System.out.println(crestData.get(Integer.parseInt("34")).lastKey());	
+		loadOrderMap(new Integer[] {34});
+		System.out.println(buyOrders.get(34));
+		loadMetaMap(new Integer[] {34});
+		System.out.println(metaData.get(34)[8]);
 	}
 	
 	//TODO: string[][] will be replaced with a trade class that will contain similar information
@@ -25,23 +40,11 @@ public class DefaultTrader extends Trader {
 		potentialTrades = searchOrders(potentialTrades);
 		potentialTrades = validateByVolume(potentialTrades);
 		
-		//update the current prices for the items that have been selected and validated 
-		EVECentralTransfer ecTransfer = new EVECentralTransfer();		
-		ArrayList<String> tempList = new ArrayList<String>();
-		
-		for (Integer itemID : potentialTrades) {
-			tempList.add(itemID.toString());
-		}
-		
-		//updated orders elected
-		ecTransfer.getAndTransferOrders(tempList.toArray(new String[tempList.size()]));
-		ecTransfer = null;
-		
 		//check to ensure the trades still match criteria 
 		potentialTrades = searchOrders(potentialTrades);
 		
 		//validate trades against historical trending 
-		potentialTrades = validateByTrend(potentialTrades);
+		//potentialTrades = validateByTrend(potentialTrades);
 		finalTrades = new String[potentialTrades.length][];
 		
 		//returns a string array for each trade. 
@@ -51,36 +54,19 @@ public class DefaultTrader extends Trader {
 		return finalTrades;
 	}
 	
+	/*
 	//this method will check the items listed and ensure there is not a signifignant downward trend in the last 10 days
-	private Integer[] validateByTrend(Integer[] itemIDs) {
-		HashSet<Integer> validatedTrades = new HashSet<Integer>();		
-		ArrayList<BigDecimal> curentItemAverages = new ArrayList<BigDecimal>();
-		ArrayList<BigDecimal> priceDifferences = new ArrayList<BigDecimal>();
-		
-		try {
-			selectStatement = sqlConnection.getMarketStatement();
-		} catch (Exception e) {
-			//add logging
-		}
-		
-		ResultSet selectResults; 
-		String selectQuery = "SELECT DISTINCT * FROM CRESTHistorical WHERE ItemID = %d ORDER BY MarketDate DESC LIMIT 10";
-		
+	private Integer[] validateByTrend(Integer[] itemIDs) {		
 		for (Integer itemID: itemIDs){ 
-			try {
-				//gathers the historical averages 				
-				selectResults = selectStatement.executeQuery(String.format(selectQuery, itemID));
-				
-				while (selectResults.next()) {
-					curentItemAverages.add(new BigDecimal(selectResults.getString("avgPrice")));
-				}
-				
+			try {		
 				//calculates the average average across the days in question.
 				//as well as the difference between each days average and the current days average
 				//zeroth index will be the most recent day
 				BigDecimal average = new BigDecimal(0);
-				for (BigDecimal big : curentItemAverages) {
-					average = average.add(big);
+				
+				//this will need to be reworked
+				for (BigDecimal[] big : crestData.get(itemID).values()) {
+					average = average.add(big[0]);
 					
 					//most recent average - this average 
 					priceDifferences.add(curentItemAverages.get(0).subtract(big));
@@ -108,13 +94,14 @@ public class DefaultTrader extends Trader {
 		return validatedTrades.toArray(new Integer[validatedTrades.size()]);
 	}
 	
+	*/
+	
 	//validates that the trades passed to it have sufficent volume and return to be worth investing in.
 	private Integer[] validateByVolume(Integer[] itemIDs) {
 		BigDecimal[] curentItemData;
 		BigDecimal profitISK;
 		BigDecimal volume;
 		BigDecimal iskByVolume;		
-		//the set of trades that have been validated
 		HashSet<Integer> validatedTrades = new HashSet<Integer>();
 
 		//iterate though all passed item ID's
@@ -125,7 +112,7 @@ public class DefaultTrader extends Trader {
 				//gets the profit in isk multiplied by 5% of the total market volume over 24h
 				//5% might be a bit high for expected market impact but will adjust as needed
 				profitISK = curentItemData[1].subtract(curentItemData[0]);
-				volume = orderVolume.get(itemID);		
+				volume = curentItemData[8];		
 				iskByVolume = volume.multiply(profitISK).multiply(new BigDecimal(.05));
 				
 				//if the volume is over 200 items traded in the past 24h
@@ -141,9 +128,8 @@ public class DefaultTrader extends Trader {
 		return validatedTrades.toArray(new Integer[validatedTrades.size()]);
 	}
 	
-	//searches though the itemID's passed to it looking for recomended trades
+	//searches though the itemID's passed to it looking for recommended trades
 	private Integer[] searchOrders(Integer[] itemIDs) {
-		//bid decimal has to be used as data can range from single values to billions 
 		BigDecimal[] curentItemData;
 		BigDecimal profitPercent;
 		BigDecimal profitISK;
@@ -154,24 +140,20 @@ public class DefaultTrader extends Trader {
 		//cycles though all item ID's passed to it 
 		for (Integer itemID: itemIDs) {
 			try {
-				//looks for values where the price difference between buy and sell is over 15% and under 30%
 				curentItemData = new BigDecimal[] {buyOrders.get(itemID),sellOrders.get(itemID)};
 				
 				//index 0 sell orders
 				//index 1 buy orders
 				
-				//gets the profit per item at current order price
 				profitISK = curentItemData[1].subtract(curentItemData[0]);
-				
-				//calulates the percentage off the buy price
 				profitPercent = profitISK.divide(curentItemData[0],4,BigDecimal.ROUND_HALF_UP);
 				
-				//if the precentage is in the acceptable range add the item ID to the list
+				//if the percentage is in the acceptable range add the item ID to the list
 				if (profitPercent.compareTo(new BigDecimal(.15)) > 0 && profitPercent.compareTo(new BigDecimal(.50)) < 0) {
 					possibleTrades.add(itemID);
 				}
 				
-			//logic excpetion as some items will lack either buy or sell orders. 
+			//logic exception as some items will lack either buy or sell orders. 
 			} catch (ArithmeticException e) {
 				System.out.println("Could not compare itemID: " + itemID);
 			}

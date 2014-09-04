@@ -1,8 +1,6 @@
 package market.dataconnections;
 
 import java.net.URL;
-import java.sql.ResultSet;
-
 import org.w3c.dom.Document;
 
 public class EVECentralMarketConnection extends URL_MarketConnection {
@@ -24,7 +22,6 @@ public class EVECentralMarketConnection extends URL_MarketConnection {
 	//this data is for the past 24h and covers the 'blind spot' in the crest API
 	public Document getXMLMetaData(String[] itemIDs) {
 		//upto 100 items can be included in this request
-
 		try {
 			
 			StringBuilder urlBuilder = new StringBuilder();

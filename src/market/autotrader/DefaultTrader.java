@@ -7,8 +7,13 @@ import java.util.*;
 
 
 public class DefaultTrader extends Trader {
-	public DefaultTrader() {
-		sqlConnection = new MySQLMarketConnection();
+	public DefaultTrader(SQL_Connection sqlConnection) {
+		this.sqlConnection = sqlConnection;
+	}
+	
+	//TODO: string[][] will be replaced with a trade class that will contain similar information
+	@Override
+	public String[][] suggestTrades() {
 		try {
 			selectStatement = sqlConnection.getMarketStatement();
 			loadItemIDs();
@@ -16,11 +21,7 @@ public class DefaultTrader extends Trader {
 			System.out.println("unable to connect to database");
 			e.printStackTrace();
 		}
-	}
-	
-	//TODO: string[][] will be replaced with a trade class that will contain similar information
-	@Override
-	public String[][] suggestTrades() {
+		
 		String[][] finalTrades; 
 		Integer[] potentialTrades = itemIDs.keySet().toArray(new Integer[itemIDs.size()]);
 		

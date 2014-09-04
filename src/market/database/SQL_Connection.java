@@ -10,4 +10,5 @@ public interface SQL_Connection {
 	public void changeConnectionString(String serverLocation, String userID, String password);
 	public void changeConnectionString(String serverLocation, String userID);
 	public void changeConnectionString(String serverLocation);
+	public boolean testConnection();
 }

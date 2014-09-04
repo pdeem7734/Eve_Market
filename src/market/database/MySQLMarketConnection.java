@@ -14,7 +14,17 @@ public class MySQLMarketConnection implements SQL_Connection {
 		statement = connection.createStatement();
 		return statement;
 	}
-	//
+	@Override
+	public boolean testConnection() {
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			connection = DriverManager.getConnection(connectionString);
+			statement = connection.createStatement();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
 	public MySQLMarketConnection() {
 		try {
 			connectionString = "jdbc:mysql://localhost:3306/market_data?user=general";

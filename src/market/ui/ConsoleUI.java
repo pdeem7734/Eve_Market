@@ -48,14 +48,29 @@ public class ConsoleUI {
 				case "-ss":
 					setServer(inputArray);
 					break;
+				case "-tc":
+					testConnection();
+					break;
 				case "-exit": 
 					System.out.println("goodby");
 					break MAIN;
+				default:
+					System.out.println("Unrecoginized command");
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 				System.out.println("Invalid Input");
 			}
+		}
+	}
+
+	private boolean testConnection() {
+		if (sqlConnection.testConnection()) {
+			System.out.println("SQL Connection Successful");
+			return true;
+		} else {
+			System.out.println("SQL Connection Failed");
+			return false;
 		}
 	}
 	
@@ -80,9 +95,11 @@ public class ConsoleUI {
 	private void trades(String operation) {
 		switch (operation) {
 		case "getTrades":
-			Trade[] suggestedTrades = trader.suggestTrades();
-			for (Trade trade : suggestedTrades) {
-				System.out.print(trade.getItemName() + ":" +trade.getItemID() + "\n");
+			if (testConnection()) {
+				Trade[] suggestedTrades = trader.suggestTrades();
+				for (Trade trade : suggestedTrades) {
+					System.out.print(trade.getItemName() + ":" +trade.getItemID() + "\n");
+				}
 			}
 			break;
 		default : 

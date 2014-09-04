@@ -32,10 +32,7 @@ public class DefaultTrader extends Trader {
 		}
 		
 		//search and validate
-		loadOrderMap(potentialTrades);
-		potentialTrades = searchOrders(potentialTrades);
-		
-		loadMetaMap(potentialTrades);
+		potentialTrades = searchOrders(potentialTrades);		
 		potentialTrades = validateByVolume(potentialTrades);
 				
 		
@@ -93,8 +90,8 @@ public class DefaultTrader extends Trader {
 	
 	//validates that the trades passed to it have sufficent volume and return to be worth investing in.
 	private Trade[] validateByVolume(Trade[] trades) {
+		loadMetaMap(trades);
 		BigDecimal[] curentItemData;
-		BigDecimal profitISK;
 		BigDecimal volume;
 		BigDecimal iskByVolume;
 		HashSet<Trade> validatedTrades = new HashSet<Trade>();
@@ -127,6 +124,7 @@ public class DefaultTrader extends Trader {
 	
 	//searches though the itemID's passed to it looking for recommended trades
 	private Trade[] searchOrders(Trade[] trades) {
+		loadOrderMap(trades);
 		BigDecimal[] curentItemData;
 		BigDecimal profitPercent;
 		BigDecimal profitISK;

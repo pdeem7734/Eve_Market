@@ -23,8 +23,7 @@ public class ServerConsole {
 					setServer(inputArray);
 					break;
 				case "-tc":
-					testConnection();
-					
+					testConnection();		
 					break;
 				case "-exit":
 					System.out.println("goodby");

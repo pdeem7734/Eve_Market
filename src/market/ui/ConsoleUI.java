@@ -7,16 +7,16 @@ import market.putdata.*;
 import market.database.*;
 
 
-//completely lacks a console UI at this point just an entry point to the application
-
+//basic console entry point for the application at this point
 public class ConsoleUI {
 	BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 	String input;
 	String[] inputArray;
 	Trader trader;
 	SQL_Connection sqlConnection;
+	
+	
 	//entry point for the application
-	//we will need to redefine to allow basic trading suggestings once trader/default trader have been defined
 	public static void main(String args[]){
 		ConsoleUI mainUI = new ConsoleUI();
 		mainUI.startConsoleInput();
@@ -29,11 +29,12 @@ public class ConsoleUI {
 	
 	//starts the console input portion
 	public void startConsoleInput() {
-		while (true) {
+		System.out.println("Welcome to the console Trader");
+		System.out.println("Default Trader has been loaded\n'-t getTrades' will print a list of suggested trades");
+		System.out.println("'-h' will get a full list of commands'");
+		MAIN: while (true) {
+			System.out.print(">");
 			try {
-				System.out.println("Welcome to the console Trader");
-				System.out.println("Default Trader has been loaded\n'-t getTrades' will print a list of suggested trades");
-				System.out.println("for a full list of commands type '-h'");
 				
 				inputArray = inputReader.readLine().split(" ");
 				
@@ -46,8 +47,12 @@ public class ConsoleUI {
 					break;
 				case "-ss":
 					setServer(inputArray);
+				case "-exit": 
+					System.out.println("goodby");
+					break MAIN;
 				}
 			} catch (Exception e) {
+				e.printStackTrace();
 				System.out.println("Invalid Input");
 			}
 		}
@@ -74,13 +79,10 @@ public class ConsoleUI {
 	private void trades(String operation) {
 		switch (operation) {
 		case "getTrades":
-			String[][] suggestedTrades = trader.suggestTrades();
-			
-			for (String[] trade : suggestedTrades) {
-				for (String s: trade) {
-					System.out.print(s + ",");
-				}
-				System.out.print("\n");
+			Trade[] suggestedTrades = trader.suggestTrades();
+			System.out.println(suggestedTrades.length);
+			for (Trade trade : suggestedTrades) {
+				System.out.print(trade.getItemName() + ":" +trade.getItemID() + "\n");
 			}
 			break;
 		default : 
@@ -108,17 +110,5 @@ public class ConsoleUI {
 	private void startEVECentralTransfer(String[] itemIDs) {
 		EVECentralTransfer et = new EVECentralTransfer();
 		et.getAndTransfer(itemIDs);
-	}
-	
-	
-	private void getDefaultTrades() {
-		String[][] suggestedTrades = trader.suggestTrades();
-		
-		for (String[] trade : suggestedTrades) {
-			for (String s: trade) {
-				System.out.print(s + ",");
-			}
-			System.out.print("\n");
-		}
 	}
 }

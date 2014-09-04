@@ -26,7 +26,7 @@ public abstract class Trader {
 	//first holding the trade
 	//second holding the info on the trade
 	//may change this to an obj and make trade it's own class
-	public abstract String[][] suggestTrades();
+	public abstract Trade[] suggestTrades();
 	
 	
 	//this will reload the maps with new information from the database 
@@ -49,7 +49,7 @@ public abstract class Trader {
 	}
 	
 	//loads the order from the MySQL server
-	protected void loadOrderMap(Integer[] itemIDs) {
+	protected void loadOrderMap(Trade[] trades) {
 		//stupid select string will need to make smaller
 		String selectString = "SELECT * FROM evecentral AS histEC INNER JOIN " 
 				+ "itemtypes AS items "
@@ -58,7 +58,8 @@ public abstract class Trader {
 				+ "WHERE itemID = %d ORDER BY items.itemid;";
 		try { 
 			//runs a select query on the most recent orders
-			for (Integer itemID : itemIDs) {
+			for (Trade trade : trades) {
+				Integer itemID = trade.getItemID();
 				ResultSet selectResults = selectStatement.executeQuery(String.format(selectString, itemID));
 				
 				//iterates though all and adds to map
@@ -75,12 +76,13 @@ public abstract class Trader {
 	}
 	
 	//this will load any requisite data from CREST
-	protected void loadCrestInfo(int range, Integer[] itemIDs) {
+	protected void loadCrestInfo(int range, Trade[] trades) {
 		String selectQuery = "SELECT DISTINCT "
 				+ "itemID, Volume, ordercount, lowprice, highprice, avgprice, marketdate FROM CRESTHistorical "
 				+ "WHERE ItemID = %d ORDER BY MarketDate DESC LIMIT %d";
 		
-		for (Integer itemID : itemIDs) {
+		for (Trade trade : trades) {
+			Integer itemID = trade.getItemID();
 			//this will be the step to import crest information
 			try {	
 				ResultSet selectResults = selectStatement.executeQuery(String.format(selectQuery, itemID, range));
@@ -108,7 +110,7 @@ public abstract class Trader {
 	}
 	
 	//loads meta data
-	protected void loadMetaMap(Integer[] itemIDs) {
+	protected void loadMetaMap(Trade[] trades) {
 	
 		String selectString = "SELECT * FROM metadata AS histMD INNER JOIN "
 				+ "itemtypes AS items "
@@ -117,7 +119,8 @@ public abstract class Trader {
 		try {
 			Statement selectCRESTStatement = sqlConnection.getMarketStatement();
 			//runs select query that will only contain the most recent meta data
-			for (Integer itemID : itemIDs){
+			for (Trade trade : trades){
+				Integer itemID = trade.getItemID();
 				ResultSet selectResults = selectStatement.executeQuery(String.format(selectString, itemID));
 				ResultSet selectCRESTResults = selectCRESTStatement.executeQuery(String.format("SELECT DISTINCT * FROM CRESTHistorical WHERE ItemID = %d ORDER BY MarketDate DESC LIMIT 1", itemID));
 

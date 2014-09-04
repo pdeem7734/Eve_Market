@@ -47,6 +47,7 @@ public class ConsoleUI {
 					break;
 				case "-ss":
 					setServer(inputArray);
+					break;
 				case "-exit": 
 					System.out.println("goodby");
 					break MAIN;
@@ -80,7 +81,6 @@ public class ConsoleUI {
 		switch (operation) {
 		case "getTrades":
 			Trade[] suggestedTrades = trader.suggestTrades();
-			System.out.println(suggestedTrades.length);
 			for (Trade trade : suggestedTrades) {
 				System.out.print(trade.getItemName() + ":" +trade.getItemID() + "\n");
 			}

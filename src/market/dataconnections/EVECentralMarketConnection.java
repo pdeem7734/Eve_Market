@@ -17,7 +17,8 @@ public class EVECentralMarketConnection extends URL_MarketConnection {
 			return null; 
 		}
 	}
-
+	
+	
 	//pulls meta data from eve central
 	//this data is for the past 24h and covers the 'blind spot' in the crest API
 	public Document getXMLMetaData(String[] itemIDs) {

@@ -7,7 +7,6 @@ import market.database.*;
 import market.dataconnections.*;
 
 import org.json.simple.*;
-import org.w3c.dom.Document;
 
 import java.sql.*;
 

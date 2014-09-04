@@ -2,14 +2,10 @@ package market.putdata;
 
 import java.math.BigDecimal;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
 import org.w3c.dom.NodeList;
-
-import market.dataconnections.*;
-import market.database.*;
 
 public abstract class DataTransfer {
 	//this class is an abstraction of a class that will take information from one of the classed in market.dataconnections

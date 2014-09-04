@@ -1,33 +1,27 @@
 package market.autotrader;
 
-import market.database.*;
-
 import java.math.*;
 import java.util.*;
 
 
 public class DefaultTrader extends Trader {
-	public DefaultTrader(SQL_Connection sqlConnection) {
-		this.sqlConnection = sqlConnection;
+	public DefaultTrader(MarketData marketData) {
+		this.marketData = marketData;
 	}
 	
 	//TODO: string[][] will be replaced with a trade class that will contain similar information
 	@Override
 	public Trade[] suggestTrades() {
-		try {
-			selectStatement = sqlConnection.getMarketStatement();
-			loadItemIDs();
-		} catch (Exception e) {
-			System.out.println("unable to connect to database");
-			e.printStackTrace();
-		}
 		
-		Trade[] finalTrades; 
-		Trade[] potentialTrades = new Trade[itemIDs.size()];
+		marketData.loadItemIDs();
+
+		
+		Trade[] finalTrades;
+		Trade[] potentialTrades = new Trade[marketData.itemIDs.size()];
 		
 		int tempIndex = 0;
-		for (Integer itemID : itemIDs.keySet()) {
-			potentialTrades[tempIndex] = new Trade(itemID, itemIDs.get(itemID));
+		for (Integer itemID : marketData.itemIDs.keySet()) {
+			potentialTrades[tempIndex] = new Trade(itemID, marketData.itemIDs.get(itemID));
 			tempIndex ++;
 		}
 		
@@ -37,7 +31,6 @@ public class DefaultTrader extends Trader {
 				
 		
 		//validate trades against historical trending 
-		loadCrestInfo(10, potentialTrades);
 		finalTrades = validateByTrend(potentialTrades);
 		potentialTrades = null;
 		
@@ -47,6 +40,7 @@ public class DefaultTrader extends Trader {
 	
 	//this method will check the items listed and ensure there is not a significant downward trend contained in the data loaded
 	private Trade[] validateByTrend(Trade[] trades) {
+		marketData.loadCrestInfo(10, trades);
 		ArrayList<Trade> validatedTrades = new ArrayList<Trade>();
 		
 		for (Trade trade: trades){
@@ -57,15 +51,15 @@ public class DefaultTrader extends Trader {
 				//as well as the difference between each days average and the current days average
 				//zeroth index will be the most recent day
 				BigDecimal average = new BigDecimal(0);
-				BigDecimal mostRecentDayAverage = crestData.get(itemID).lastEntry().getValue()[4];
+				BigDecimal mostRecentDayAverage = marketData.crestData.get(itemID).lastEntry().getValue()[4];
 				//this will need to be reworked
-				for (BigDecimal[] big : crestData.get(itemID).values()) {
+				for (BigDecimal[] big : marketData.crestData.get(itemID).values()) {
 					average = average.add(big[0]);
 					
 					//most recent average - this average 
 					priceDifferences.add(mostRecentDayAverage.subtract(big[0]));
 				}
-				average = average.divide(new BigDecimal(crestData.get(itemID).values().size()), 4);
+				average = average.divide(new BigDecimal(marketData.crestData.get(itemID).values().size()), 4);
 				
 				//calculate average change -1 because the price difference contained today - today
 				BigDecimal averageChange = new BigDecimal(0);
@@ -90,7 +84,7 @@ public class DefaultTrader extends Trader {
 	
 	//validates that the trades passed to it have sufficent volume and return to be worth investing in.
 	private Trade[] validateByVolume(Trade[] trades) {
-		loadMetaMap(trades);
+		marketData.loadMetaMap(trades);
 		BigDecimal[] curentItemData;
 		BigDecimal volume;
 		BigDecimal iskByVolume;
@@ -99,7 +93,7 @@ public class DefaultTrader extends Trader {
 		//iterate though all passed item ID's
 		for (Trade trade : trades) {
 			Integer itemID = trade.getItemID();
-			curentItemData = metaData.get(itemID);
+			curentItemData = marketData.metaData.get(itemID);
 			try {
 
 				//gets the profit in isk multiplied by 5% of the total market volume over 24h
@@ -124,7 +118,7 @@ public class DefaultTrader extends Trader {
 	
 	//searches though the itemID's passed to it looking for recommended trades
 	private Trade[] searchOrders(Trade[] trades) {
-		loadOrderMap(trades);
+		marketData.loadOrderMap(trades);
 		BigDecimal[] curentItemData;
 		BigDecimal profitPercent;
 		BigDecimal profitISK;
@@ -136,7 +130,7 @@ public class DefaultTrader extends Trader {
 		for (Trade trade : trades) {
 			Integer itemID = trade.getItemID();
 			try {
-				curentItemData = new BigDecimal[] {buyOrders.get(itemID),sellOrders.get(itemID)};
+				curentItemData = new BigDecimal[] {marketData.buyOrders.get(itemID), marketData.sellOrders.get(itemID)};
 				
 				//index 0 sell orders
 				//index 1 buy orders

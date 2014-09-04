@@ -13,7 +13,9 @@ public class ConsoleUI {
 	String input;
 	String[] inputArray;
 	Trader trader;
+	MarketData marketData;
 	SQL_Connection sqlConnection;
+	
 	
 	
 	//entry point for the application
@@ -22,16 +24,18 @@ public class ConsoleUI {
 		mainUI.startConsoleInput();
 	}
 	
+	//this will need to be changed at some point
 	public ConsoleUI() {
 		sqlConnection = new MySQLMarketConnection();
-		trader = new DefaultTrader(sqlConnection);
+		marketData = new MarketData((MySQLMarketConnection)sqlConnection);
+		trader = new DefaultTrader(marketData);
 	}
 	
 	//starts the console input portion
 	public void startConsoleInput() {
 		System.out.println("Welcome to the console Trader");
-		System.out.println("Default Trader has been loaded\n'-t getTrades' will print a list of suggested trades");
 		System.out.println("'-h' will get a full list of commands'");
+		System.out.println("Default Trader has been loaded");		
 		MAIN: while (true) {
 			System.out.print(">");
 			try {
@@ -51,9 +55,13 @@ public class ConsoleUI {
 				case "-tc":
 					testConnection();
 					break;
-				case "-exit": 
+				case "-exit":
 					System.out.println("goodby");
 					break MAIN;
+				case "-up":
+					startCRESTTransfer();
+					startEVECentralTransfer();
+					break;
 				default:
 					System.out.println("Unrecoginized command");
 				}
@@ -89,7 +97,12 @@ public class ConsoleUI {
 	}
 	
 	private void printHelp() {
-		System.out.println("This is where we would help you, maybe");
+		System.out.println("'-h'               : will bring up the help menu");
+		System.out.println("'-t getTrades'     : will suggest trades with the slected trader");
+		System.out.println("'-ss'              : will will set the server adress {ip (username) (password)}");
+		System.out.println("'-tc'              : will test the connection to the SQL server with current connection string");
+		System.out.println("'-up'              : will will force an update of all market information, this will take a while");
+		System.out.println("'-exit'            : will exit the application");
 	}
 	
 	private void trades(String operation) {
@@ -114,18 +127,9 @@ public class ConsoleUI {
 		CRESTTransfer ct = new CRESTTransfer();
 		ct.getAndTransfer();
 	}
-	private void startCRESTTransfer(String[] itemIDs) {
-		CRESTTransfer ct = new CRESTTransfer();
-		ct.getAndTransfer(itemIDs);
-	}
 	
 	private void startEVECentralTransfer() {
 		EVECentralTransfer et = new EVECentralTransfer();
 		et.getAndTransfer();
-	}
-	
-	private void startEVECentralTransfer(String[] itemIDs) {
-		EVECentralTransfer et = new EVECentralTransfer();
-		et.getAndTransfer(itemIDs);
 	}
 }

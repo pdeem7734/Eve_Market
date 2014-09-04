@@ -13,13 +13,17 @@ import java.sql.*;
 //this class has gotten way out of hand...whoops
 public class CRESTTransfer extends DataTransfer {
 	
-	MySQLMarketConnection sqlCon = new MySQLMarketConnection();	
+	MySQLMarketConnection sqlCon;
 	ArrayList<String> itemIDList = new ArrayList<String>();
 	HashSet<String> historicalJSON = new HashSet<String>();
 	
 	//itme IDs that have been places
 	private String[] itemIDs = null;
 	private int idNumber = 0;
+	
+	public CRESTTransfer(MySQLMarketConnection sqlCon) {
+		this.sqlCon = sqlCon;
+	}
 	
 	//the default transfer method gets all item ids from the sql table 
 	//then calls the paramaterized method with the list of methods

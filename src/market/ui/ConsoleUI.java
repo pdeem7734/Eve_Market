@@ -14,7 +14,7 @@ public class ConsoleUI {
 	String[] inputArray;
 	Trader trader;
 	MarketData marketData;
-	SQL_Connection sqlConnection;
+	MySQLMarketConnection sqlConnection;
 	
 	
 	
@@ -27,7 +27,7 @@ public class ConsoleUI {
 	//this will need to be changed at some point
 	public ConsoleUI() {
 		sqlConnection = new MySQLMarketConnection();
-		marketData = new MarketData((MySQLMarketConnection)sqlConnection);
+		marketData = new MarketData(sqlConnection);
 		trader = new DefaultTrader(marketData);
 	}
 	
@@ -124,12 +124,12 @@ public class ConsoleUI {
 	
 	//below are slightly outdated methods, but could prove useful for testing at some point
 	private void startCRESTTransfer() {
-		CRESTTransfer ct = new CRESTTransfer();
+		CRESTTransfer ct = new CRESTTransfer(sqlConnection);
 		ct.getAndTransfer();
 	}
 	
 	private void startEVECentralTransfer() {
-		EVECentralTransfer et = new EVECentralTransfer();
+		EVECentralTransfer et = new EVECentralTransfer(sqlConnection);
 		et.getAndTransfer();
 	}
 }

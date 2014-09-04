@@ -18,6 +18,10 @@ public class EVECentralTransfer extends DataTransfer {
 	ArrayList<String> itemIDList = new ArrayList<String>();
 	ArrayList<Document> metaDataXML = new ArrayList<Document>();
 	
+	public EVECentralTransfer(MySQLMarketConnection sqlCon) {
+		this.sqlCon = sqlCon;
+	}
+
 	@Override
 	public void getAndTransfer() {
 		try {

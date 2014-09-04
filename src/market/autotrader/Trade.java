@@ -15,7 +15,6 @@ public class Trade {
 		this.itemName = itemName;
 	}
 	
-	
 	//set methods for the various fields
 	public void setProfitInISK(BigDecimal profit) {
 		this.profitInISK = profit;

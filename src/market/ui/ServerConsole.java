@@ -29,7 +29,7 @@ public class ServerConsole {
 					System.out.println("goodby");
 					break MAIN;
 				case "-up":
-					startCRESTTransfer();
+					startCRESTTransfer();		
 					startEVECentralTransfer();
 					break;
 				default:

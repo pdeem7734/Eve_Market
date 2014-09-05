@@ -12,8 +12,10 @@ public class ServerConsole {
 	BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 	String[] inputArray = new String[0];
 	MySQLMarketConnection sqlConnection = new MySQLMarketConnection();
+	
 	public ServerConsole() {
 	}
+	
 	//server console start/control point
 	public void startServerConsole() {
 		System.out.println("This is the console access to the market server");

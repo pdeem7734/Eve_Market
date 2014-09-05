@@ -5,12 +5,16 @@ import java.io.*;
 import market.database.*;
 import market.putdata.CRESTTransfer;
 import market.putdata.EVECentralTransfer;
+
+//this class will provide basic console access to the sql server
 public class ServerConsole {
+	
 	BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 	String[] inputArray = new String[0];
 	MySQLMarketConnection sqlConnection = new MySQLMarketConnection();
 	public ServerConsole() {
 	}
+	//server console start/control point
 	public void startServerConsole() {
 		System.out.println("This is the console access to the market server");
 		MAIN: while (true) {
@@ -41,6 +45,7 @@ public class ServerConsole {
 		}
 	}
 	
+	//basic method to allow you to test the connection to the SQL server
 	private boolean testConnection() {
 		if (sqlConnection.testConnection()) {
 			System.out.println("SQL Connection Successful");
@@ -51,6 +56,7 @@ public class ServerConsole {
 		}
 	}
 	
+	//basic to set the server adress
 	private void setServer(String[] serverArgs) {
 		switch (serverArgs.length) {
 		case 2:
@@ -65,11 +71,13 @@ public class ServerConsole {
 		}
 	}
 	
+	//starts the transfer of all CREST information
 	private void startCRESTTransfer() {
 		CRESTTransfer ct = new CRESTTransfer(sqlConnection);
 		ct.getAndTransfer();
 	}
 	
+	//starts transfer of all EVECentral information
 	private void startEVECentralTransfer() {
 		EVECentralTransfer et = new EVECentralTransfer(sqlConnection);
 		et.getAndTransfer();

@@ -58,9 +58,8 @@ public class ConsoleUI {
 				case "-exit":
 					System.out.println("goodby");
 					break MAIN;
-				case "-up":
-					startCRESTTransfer();
-					startEVECentralTransfer();
+				case "-osc":
+					enterServerConsole();
 					break;
 				default:
 					System.out.println("Unrecoginized command");
@@ -70,6 +69,11 @@ public class ConsoleUI {
 				System.out.println("Invalid Input");
 			}
 		}
+	}
+
+	private void enterServerConsole() {
+		ServerConsole sc = new ServerConsole();
+		sc.startServerConsole();
 	}
 
 	private boolean testConnection() {
@@ -99,9 +103,9 @@ public class ConsoleUI {
 	private void printHelp() {
 		System.out.println("'-h'               : will bring up the help menu");
 		System.out.println("'-t getTrades'     : will suggest trades with the slected trader");
-		System.out.println("'-ss'              : will will set the server adress {ip (username) (password)}");
+		System.out.println("'-ss'              : will set the server adress {ip (username) (password)}");
 		System.out.println("'-tc'              : will test the connection to the SQL server with current connection string");
-		System.out.println("'-up'              : will will force an update of all market information, this will take a while");
+		System.out.println("'-osc'             : will open the server console access");
 		System.out.println("'-exit'            : will exit the application");
 	}
 	

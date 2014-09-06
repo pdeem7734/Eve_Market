@@ -24,8 +24,7 @@ public class AdvancedTrader extends Trader {
 		TreeMap<String, BigDecimal[]> historicalData = marketData.crestData.get(new Integer(34));
 		
 		//this will iterate from the start date to the end date.
-		//will want to compare trend information with index n and n + 3
-		//rather then adjacent indexes
+		//will want to compare trend information with index n and n + 3 rather then adjacent indexes
 		for(String date : historicalData.keySet()) {
 			System.out.println(date);
 		}

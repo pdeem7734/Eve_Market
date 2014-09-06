@@ -85,21 +85,21 @@ public class MarketData {
 				ResultSet selectResults = selectStatement.executeQuery(String.format(selectQuery, itemID, range));
 				
 				TreeMap<String, BigDecimal[]> individualCrestData = new TreeMap<String, BigDecimal[]>();
-				BigDecimal[] trendData = new BigDecimal[5];
 				String rowDate;
 				
 				
 				while (selectResults.next()) {
+					BigDecimal[] trendData = new BigDecimal[5];
 					rowDate = selectResults.getString("MarketDate");
 					trendData[0] = new BigDecimal(selectResults.getString("Volume"));
 					trendData[1] = new BigDecimal(selectResults.getString("orderCount"));
 					trendData[2] = new BigDecimal(selectResults.getString("lowPrice"));
 					trendData[3] = new BigDecimal(selectResults.getString("highPrice"));
 					trendData[4] = new BigDecimal(selectResults.getString("avgPrice"));	
-					individualCrestData.put(rowDate, trendData);					
-					crestData.put(itemID, individualCrestData);
+					individualCrestData.put(rowDate, trendData);
+					
 				}
-				
+				crestData.put(itemID, individualCrestData);
 			} catch (Exception e) {
 				//add logging
 			}

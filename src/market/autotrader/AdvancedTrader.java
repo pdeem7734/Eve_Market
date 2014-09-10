@@ -34,89 +34,112 @@ public class AdvancedTrader extends Trader {
 		}
 	}
 	
+	//should probably create my own class stuff for simple things like this
+	private Integer getAverage(Integer[] arg) {
+		Integer avg = 0;
+		for (Integer element : arg) {
+			avg += element;
+		}
+		avg = avg/arg.length;
+		return avg;
+	}
+	private BigDecimal getAverage(BigDecimal[] arg) {
+		BigDecimal avg = new BigDecimal(0);
+		for (BigDecimal element : arg) {
+			avg = avg.add(element);
+		}
+		avg = avg.divide(new BigDecimal(arg.length), 2);
+		return avg;
+	}
 	
 	@Override
 	public Trade[] suggestTrades() {
 		//we are going to start out with some basic trend analysis
-		Trade trade1 = new Trade(new Integer(29668), "PLEX");
+		Trade trade1 = new Trade(new Integer(8529), "PLEX");
 		marketData.loadCrestInfo(425, new Trade[] {trade1});
 		
 		ArrayList<TrendDirection> trendIndex = new ArrayList<TrendDirection>();
+		ArrayList<BigDecimal> rollingAvgGroup = new ArrayList<BigDecimal>();
 		BigDecimal averagePriceDifference;
 		
 		
 		//we can only implement this like this because we are using a single itemID 
-		TreeMap<String, BigDecimal[]> historicalData = marketData.crestData.get(new Integer(29668));
-				
-		String threeDaysAhead;
+		TreeMap<String, BigDecimal[]> historicalData = marketData.crestData.get(new Integer(8529));
+		
 		Integer trendLength = new Integer(1);
 		TrendDirection lastTrendDirection = TrendDirection.STABLE;
 		TrendDirection curentTrendDirection = TrendDirection.STABLE;
 		
 		
 		//this will iterate from the start date to the end date.
-		//will want to compare trend information with index n and n + 3 rather then adjacent indexes
 		for(String date : historicalData.keySet()) {
 			try {
-			//current solution is stupid but it works, so we will work with it. 
-			//TODO: change to a calendar based increment solution
-			threeDaysAhead = historicalData.higherKey(historicalData.higherKey(historicalData.higherKey(date)));
-			
-			//gets the difference between date 3 days ahead and the curen't price
-			//Positive represents a rise in price
-			averagePriceDifference = historicalData.get(threeDaysAhead)[4].subtract(historicalData.get(date)[4]);
-			
-			//test to see if it is within 1% of the original price
-			if (averagePriceDifference.abs().compareTo(historicalData.get(date)[4].multiply(new BigDecimal(.01))) < 0) {
-				trendIndex.add(TrendDirection.STABLE);
-				
-				
-				lastTrendDirection = curentTrendDirection;
-				curentTrendDirection = TrendDirection.STABLE;
-				
-				if (curentTrendDirection == lastTrendDirection) {
-					trendLength ++;
+				//groups the elements of rolling average in an array list
+				if (rollingAvgGroup.size() < 7) {
+					rollingAvgGroup.add(historicalData.get(date)[4]);
 				} else {
-					System.out.print(trendLength + " ");
-					System.out.print(lastTrendDirection);
-					addTrend(lastTrendDirection, trendLength);
-					trendLength = 1;
-					System.out.println(" : Start Date " + date);
+					rollingAvgGroup.remove(0);
+					rollingAvgGroup.add(historicalData.get(date)[4]);
 				}
+				BigDecimal rollingAverage = getAverage(rollingAvgGroup.toArray(new BigDecimal[rollingAvgGroup.size()]));
 				
 				
-			} else  if (averagePriceDifference.compareTo(new BigDecimal(0)) > 0) { //checks the sign, if it's positive it's an up trend
-				trendIndex.add(TrendDirection.UP);
+				//gets the difference between date 3 days ahead and the curen't price
+				//Positive represents a rise in price
+				averagePriceDifference = rollingAverage.subtract(rollingAvgGroup.get(rollingAvgGroup.size() - 1));
 				
-				lastTrendDirection = curentTrendDirection;
-				curentTrendDirection = TrendDirection.UP;
-				
-				if (curentTrendDirection == lastTrendDirection) {
-					trendLength ++;
-				} else {
-					System.out.print(trendLength + " ");
-					System.out.print(lastTrendDirection);
-					addTrend(lastTrendDirection, trendLength);
-					trendLength = 1;
-					System.out.println(" : Start Date " + date);
+				//test to see if it is within 1% of the rolling average price
+				if (averagePriceDifference.abs().compareTo(rollingAverage.multiply(new BigDecimal(.01))) < 0) {
+					trendIndex.add(TrendDirection.STABLE);
+					
+					lastTrendDirection = curentTrendDirection;
+					curentTrendDirection = TrendDirection.STABLE;
+					
+					if (curentTrendDirection == lastTrendDirection) {
+						trendLength ++;
+					} else {
+						System.out.print(trendLength + " ");
+						System.out.print(lastTrendDirection);
+						addTrend(lastTrendDirection, trendLength);
+						trendLength = 1;
+						System.out.println(" : End Date " + date);
+					}
+					
+				} else  if (averagePriceDifference.compareTo(new BigDecimal(0)) < 0) {
+					//checks the sign, if it's negative current price is above the moving average
+					//price is on an up trend
+					
+					trendIndex.add(TrendDirection.UP);
+					
+					lastTrendDirection = curentTrendDirection;
+					curentTrendDirection = TrendDirection.UP;
+					
+					if (curentTrendDirection == lastTrendDirection) {
+						trendLength ++;
+					} else {
+						System.out.print(trendLength + " ");
+						System.out.print(lastTrendDirection);
+						addTrend(lastTrendDirection, trendLength);
+						trendLength = 1;
+						System.out.println(" : End Date " + date);
+					}
+					
+				} else { //if it has passed these points it's a down trend
+					trendIndex.add(TrendDirection.DOWN);
+					
+					lastTrendDirection = curentTrendDirection;
+					curentTrendDirection = TrendDirection.DOWN;
+					
+					if (curentTrendDirection == lastTrendDirection) {
+						trendLength ++;
+					} else {
+						System.out.print(trendLength + " ");
+						System.out.print(lastTrendDirection);
+						addTrend(lastTrendDirection, trendLength);
+						trendLength = 1;
+						System.out.println(" : End Date " + date);
+					}
 				}
-				
-			} else { //if it has passed these points it's a down trend
-				trendIndex.add(TrendDirection.DOWN);
-				
-				lastTrendDirection = curentTrendDirection;
-				curentTrendDirection = TrendDirection.DOWN;
-				
-				if (curentTrendDirection == lastTrendDirection) {
-					trendLength ++;
-				} else {
-					System.out.print(trendLength + " ");
-					System.out.print(lastTrendDirection);
-					addTrend(lastTrendDirection, trendLength);
-					trendLength = 1;
-					System.out.println(" : Start Date " + date);
-				}
-			}
 			} catch (NullPointerException e) {
 				//TODO: add logic so this step isn't required
 			}
@@ -124,7 +147,8 @@ public class AdvancedTrader extends Trader {
 		System.out.println("Total Number of UP Trends     : " + positiveTrendLengths.size());
 		System.out.println("Total Number of STABLE Trends : " + stableTrendLengths.size());
 		System.out.println("Total Number of DOWN Trends   : " + negativeTrendLengths.size());
-		
+		System.out.println("Curent Trend Length           : " + trendLength);
+		System.out.println("Curent Trend Direction        : " + curentTrendDirection);
 		return null;
 	}
 	

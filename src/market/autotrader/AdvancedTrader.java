@@ -153,11 +153,16 @@ public class AdvancedTrader extends Trader {
 	}
 	
 	public static void main(String[] args) {
-		MySQLMarketConnection sqlCon = new MySQLMarketConnection();  
-		MarketData marketData = new MarketData(sqlCon);
-		AdvancedTrader adv = new AdvancedTrader(marketData);
+		MySQLMarketConnection sqlCon = new MySQLMarketConnection();
+		if (sqlCon.testConnection()) {
+			MarketData marketData = new MarketData(sqlCon);
+			AdvancedTrader adv = new AdvancedTrader(marketData);
+			adv.suggestTrades();
+		} else {
+			System.out.println("Unable to connect");
+		}
 		
-		adv.suggestTrades();
+		
 	}
 	
 }

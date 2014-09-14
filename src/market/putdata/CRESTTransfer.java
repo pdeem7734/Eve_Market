@@ -46,7 +46,7 @@ public class CRESTTransfer extends DataTransfer {
 	
 	//this methos is called by the nested class to get the next item ID that needs to be pulled from the crest API
 	private synchronized String getNextID() {
-		//if there are still item id's available reutnr to the string
+		//if there are still item id's available return to the string
 		//else return null
 		try {
 			if (idNumber < itemIDs.length) {

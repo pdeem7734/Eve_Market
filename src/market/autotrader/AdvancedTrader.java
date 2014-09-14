@@ -52,24 +52,61 @@ public class AdvancedTrader extends Trader {
 		return avg;
 	}
 	
+	private Integer getHighestIndex(ArrayList<BigDecimal> firstGroup, ArrayList<BigDecimal> secondGroup) {
+		if (firstGroup.size() != secondGroup.size()) throw new AssertionError ("Both groups must be of the same size");
+		Integer ret = 0;
+		ArrayList<BigDecimal> allElements = new ArrayList<BigDecimal>();
+		allElements.addAll(firstGroup);
+		allElements.addAll(secondGroup);
+		BigDecimal largest = allElements.get(0);
+		for (int i = 0; i < allElements.size(); i ++) {
+			if (largest.compareTo(allElements.get(i)) < 0) {
+				largest = allElements.get(i);
+				ret = i; 
+			}
+		}
+		return ret;
+	}
+	
+	private Integer getLowestIndex(ArrayList<BigDecimal> firstGroup, ArrayList<BigDecimal> secondGroup) {
+		if (firstGroup.size() != secondGroup.size()) throw new AssertionError ("Both groups must be of the same size");
+		Integer ret = 0;
+		ArrayList<BigDecimal> allElements = new ArrayList<BigDecimal>();
+		allElements.addAll(firstGroup);
+		allElements.addAll(secondGroup);
+		BigDecimal smallest =allElements.get(0);
+		for (int i = 0; i < allElements.size(); i ++) {
+			if (smallest.compareTo(allElements.get(i)) > 0) {
+				smallest = allElements.get(i);
+				ret = i; 
+			}
+		}
+		return ret;
+	}
+	
+	
 	@Override
 	public Trade[] suggestTrades() {
 		//we are going to start out with some basic trend analysis
-		Trade trade1 = new Trade(new Integer(8529), "PLEX");
-		marketData.loadCrestInfo(425, new Trade[] {trade1});
+		Trade trade1 = new Trade(new Integer(8529), "Meta 4 Large Shiled Extender");
+		marketData.loadCrestInfo(700, new Trade[] {trade1});
 		
 		ArrayList<TrendDirection> trendIndex = new ArrayList<TrendDirection>();
 		ArrayList<BigDecimal> rollingAvgGroup = new ArrayList<BigDecimal>();
 		BigDecimal averagePriceDifference;
 		
+		//this will be the current math location
+		ArrayList<BigDecimal> currentBestFitGroup = new ArrayList<BigDecimal>();
+		ArrayList<BigDecimal> previousBestFitGroup = new ArrayList<BigDecimal>();
+		BigDecimal currentSlope = new BigDecimal(0);
+		BigDecimal previousSlope = new BigDecimal(0);
+		
 		
 		//we can only implement this like this because we are using a single itemID 
 		TreeMap<String, BigDecimal[]> historicalData = marketData.crestData.get(new Integer(8529));
-		
-		Integer trendLength = new Integer(1);
-		TrendDirection lastTrendDirection = TrendDirection.STABLE;
-		TrendDirection curentTrendDirection = TrendDirection.STABLE;
-		
+		Integer trendLength = new Integer(0);
+		TrendDirection lastTrendDirection = null;
+		TrendDirection currentTrendDirection = null;
 		
 		//this will iterate from the start date to the end date.
 		for(String date : historicalData.keySet()) {
@@ -83,11 +120,85 @@ public class AdvancedTrader extends Trader {
 				}
 				BigDecimal rollingAverage = getAverage(rollingAvgGroup.toArray(new BigDecimal[rollingAvgGroup.size()]));
 				
+				//puts the elements in the current best fit group does logic if it's filled the 7 days
+				currentBestFitGroup.add(historicalData.get(date)[4]);
 				
+				if (currentBestFitGroup.size() >= 7) { //we have filled the 7 elements
+					//calculate the line of best fit
+					//equation: Slope = (SumXY - SumX * YMean) / (SumX2 - SumX * XMean)
+					BigDecimal sumX = new BigDecimal(0);
+					BigDecimal sumY = new BigDecimal(0);
+					BigDecimal sumXY = new BigDecimal(0);
+					BigDecimal sumX2 = new BigDecimal(0);
+					BigDecimal xMean = new BigDecimal(0);
+					BigDecimal yMean = new BigDecimal(0);
+					
+					for (int i = 0; i < currentBestFitGroup.size(); i ++) {
+						sumY = sumY.add(currentBestFitGroup.get(i));
+						sumX = sumX.add(new BigDecimal(i + 1));
+						sumXY = sumXY.add(currentBestFitGroup.get(i).multiply(new BigDecimal(i + 1)));
+						sumX2 = sumX2.add(new BigDecimal(i + 1).multiply(new BigDecimal(i + 1)));
+					}
+					xMean = sumX.divide(new BigDecimal(currentBestFitGroup.size()), 5);
+					yMean = sumY.divide(new BigDecimal(currentBestFitGroup.size()), 5);
+					
+					currentSlope = sumXY.subtract(sumX.multiply(yMean)).divide(sumX2.subtract(sumX.multiply(xMean)), 5);
+					//we are only going to test it's sign at the moment
+					if (currentSlope.compareTo(new BigDecimal(0)) > 0) {
+						//positive 7 day trend found
+						lastTrendDirection = currentTrendDirection;
+						currentTrendDirection = TrendDirection.UP;
+						
+						if (currentTrendDirection == lastTrendDirection || lastTrendDirection == null) {
+							trendLength += 7;
+						} else {
+							Integer lengthOfLastTrend = getLowestIndex(previousBestFitGroup, currentBestFitGroup) + 1;
+							addTrend(lastTrendDirection, trendLength);
+							
+							//if the current trend doesn't match prior trend it means the prior trend was a group of negatives
+							System.out.println("Negative " + (trendLength + lengthOfLastTrend) + " day Trend Ending : " + date);
+							trendLength = 14 - lengthOfLastTrend;
+						}
+					} else {
+						//negative 7 day trend found
+						lastTrendDirection = currentTrendDirection;
+						currentTrendDirection = TrendDirection.DOWN;
+						if (currentTrendDirection == lastTrendDirection || lastTrendDirection == null) {
+							trendLength += 7;
+						} else {
+							Integer lengthOfLastTrend = getHighestIndex(previousBestFitGroup, currentBestFitGroup) + 1;
+							addTrend(lastTrendDirection, trendLength);
+							
+							//if the current trend doesn't match prior trend it means the prior trend was a group of positives
+							System.out.println("Positive " + (trendLength + lengthOfLastTrend) + " day Trend Ending : " + date);
+							trendLength = 14 - lengthOfLastTrend;
+						}
+					}
+					
+					
+					//set all current values to previous values and reset the current values
+					previousBestFitGroup.clear();
+					previousBestFitGroup.trimToSize();
+					previousBestFitGroup.addAll(currentBestFitGroup);
+					previousSlope = currentSlope;
+					currentSlope = new BigDecimal(0);
+					currentBestFitGroup.clear();
+					currentBestFitGroup.trimToSize();
+				}
 				//gets the difference between date 3 days ahead and the curen't price
 				//Positive represents a rise in price
 				averagePriceDifference = rollingAverage.subtract(rollingAvgGroup.get(rollingAvgGroup.size() - 1));
 				
+				
+				
+				
+				
+				
+				
+				
+				
+				
+				/* Commented out at present may re-implement the rolling average at a later date
 				//test to see if it is within 1% of the rolling average price
 				if (averagePriceDifference.abs().compareTo(rollingAverage.multiply(new BigDecimal(.01))) < 0) {
 					trendIndex.add(TrendDirection.STABLE);
@@ -140,15 +251,19 @@ public class AdvancedTrader extends Trader {
 						System.out.println(" : End Date " + date);
 					}
 				}
+				*/
 			} catch (NullPointerException e) {
 				//TODO: add logic so this step isn't required
 			}
 		}
+		
+		
+		
 		System.out.println("Total Number of UP Trends     : " + positiveTrendLengths.size());
 		System.out.println("Total Number of STABLE Trends : " + stableTrendLengths.size());
 		System.out.println("Total Number of DOWN Trends   : " + negativeTrendLengths.size());
 		System.out.println("Curent Trend Length           : " + trendLength);
-		System.out.println("Curent Trend Direction        : " + curentTrendDirection);
+		System.out.println("Curent Trend Direction        : " + currentTrendDirection);
 		return null;
 	}
 	

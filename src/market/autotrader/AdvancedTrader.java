@@ -6,7 +6,6 @@ import java.math.*;
 import market.database.*;
 public class AdvancedTrader extends Trader {
 	static enum TrendDirection {UP, DOWN, STABLE};
-	private TrendDirection trendDirection;
 	
 	ArrayList<Integer> positiveTrendLengths = new ArrayList<Integer>();		
 	ArrayList<Integer> negativeTrendLengths = new ArrayList<Integer>();
@@ -89,7 +88,7 @@ public class AdvancedTrader extends Trader {
 	public Trade[] suggestTrades() {
 		//we are going to start out with some basic trend analysis
 		Trade trade1 = new Trade(new Integer(8529), "Meta 4 Large Shiled Extender");
-		marketData.loadCrestInfo(700, new Trade[] {trade1});
+		marketData.loadCrestInfo(425, new Trade[] {trade1});
 		
 		ArrayList<TrendDirection> trendIndex = new ArrayList<TrendDirection>();
 		ArrayList<BigDecimal> rollingAvgGroup = new ArrayList<BigDecimal>();
@@ -100,6 +99,7 @@ public class AdvancedTrader extends Trader {
 		ArrayList<BigDecimal> previousBestFitGroup = new ArrayList<BigDecimal>();
 		BigDecimal currentSlope = new BigDecimal(0);
 		BigDecimal previousSlope = new BigDecimal(0);
+		boolean freshTrend = true;
 		
 		
 		//we can only implement this like this because we are using a single itemID 
@@ -148,14 +148,19 @@ public class AdvancedTrader extends Trader {
 						//positive 7 day trend found
 						lastTrendDirection = currentTrendDirection;
 						currentTrendDirection = TrendDirection.UP;
-						
-						if (currentTrendDirection == lastTrendDirection || lastTrendDirection == null) {
+						if (currentTrendDirection == lastTrendDirection && !freshTrend ) {
+							//if we are continuing a current trend
 							trendLength += 7;
+						} else if (currentTrendDirection == lastTrendDirection && freshTrend ) {
+							//if this is the start of a new trend
+							freshTrend = false;
+						} else if (lastTrendDirection == null) {
+							//if this is the first trend 							
 						} else {
 							Integer lengthOfLastTrend = getLowestIndex(previousBestFitGroup, currentBestFitGroup) + 1;
 							addTrend(lastTrendDirection, trendLength);
 							
-							//if the current trend doesn't match prior trend it means the prior trend was a group of negatives
+							//if the current trend doesn't match prior trend it means the prior trend was a group of positives
 							System.out.println("Negative " + (trendLength + lengthOfLastTrend) + " day Trend Ending : " + date);
 							trendLength = 14 - lengthOfLastTrend;
 						}
@@ -163,11 +168,25 @@ public class AdvancedTrader extends Trader {
 						//negative 7 day trend found
 						lastTrendDirection = currentTrendDirection;
 						currentTrendDirection = TrendDirection.DOWN;
-						if (currentTrendDirection == lastTrendDirection || lastTrendDirection == null) {
+						if (currentTrendDirection == lastTrendDirection && !freshTrend ) {
+							//if we are continuing a current trend
 							trendLength += 7;
-						} else {
+						} else if (currentTrendDirection == lastTrendDirection && freshTrend ) {
+							//if this is the start of a new trend
+							freshTrend = false;
+						} else if (lastTrendDirection == null) {
+							//if this is the first trend 							
+						}else {
 							Integer lengthOfLastTrend = getHighestIndex(previousBestFitGroup, currentBestFitGroup) + 1;
 							addTrend(lastTrendDirection, trendLength);
+							if (freshTrend) {
+								if (lengthOfLastTrend > trendLength) {
+									System.out.println("Positive " + (trendLength + lengthOfLastTrend) + " day Trend Ending : " + date);
+									trendLength = 14 - lengthOfLastTrend;
+								} else {
+									
+								}
+							}
 							
 							//if the current trend doesn't match prior trend it means the prior trend was a group of positives
 							System.out.println("Positive " + (trendLength + lengthOfLastTrend) + " day Trend Ending : " + date);

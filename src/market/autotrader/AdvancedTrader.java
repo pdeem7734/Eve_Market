@@ -51,12 +51,8 @@ public class AdvancedTrader extends Trader {
 		return avg;
 	}
 	
-	private Integer getHighestIndex(ArrayList<BigDecimal> firstGroup, ArrayList<BigDecimal> secondGroup) {
-		if (firstGroup.size() != secondGroup.size()) throw new AssertionError ("Both groups must be of the same size");
+	private Integer getHighestIndex(ArrayList<BigDecimal> allElements) {
 		Integer ret = 0;
-		ArrayList<BigDecimal> allElements = new ArrayList<BigDecimal>();
-		allElements.addAll(firstGroup);
-		allElements.addAll(secondGroup);
 		BigDecimal largest = allElements.get(0);
 		for (int i = 0; i < allElements.size(); i ++) {
 			if (largest.compareTo(allElements.get(i)) < 0) {
@@ -67,12 +63,8 @@ public class AdvancedTrader extends Trader {
 		return ret;
 	}
 	
-	private Integer getLowestIndex(ArrayList<BigDecimal> firstGroup, ArrayList<BigDecimal> secondGroup) {
-		if (firstGroup.size() != secondGroup.size()) throw new AssertionError ("Both groups must be of the same size");
+	private Integer getLowestIndex(ArrayList<BigDecimal> allElements) {
 		Integer ret = 0;
-		ArrayList<BigDecimal> allElements = new ArrayList<BigDecimal>();
-		allElements.addAll(firstGroup);
-		allElements.addAll(secondGroup);
 		BigDecimal smallest =allElements.get(0);
 		for (int i = 0; i < allElements.size(); i ++) {
 			if (smallest.compareTo(allElements.get(i)) > 0) {
@@ -157,12 +149,46 @@ public class AdvancedTrader extends Trader {
 						} else if (lastTrendDirection == null) {
 							//if this is the first trend 							
 						} else {
-							Integer lengthOfLastTrend = getLowestIndex(previousBestFitGroup, currentBestFitGroup) + 1;
+							ArrayList<BigDecimal> combinedIndex = new ArrayList<BigDecimal>();
+							combinedIndex.addAll(previousBestFitGroup);
+							combinedIndex.addAll(currentBestFitGroup);
+							
+							Integer lengthOfLastTrend = getLowestIndex(combinedIndex) + 1;
 							addTrend(lastTrendDirection, trendLength);
 							
-							//if the current trend doesn't match prior trend it means the prior trend was a group of positives
-							System.out.println("Negative " + (trendLength + lengthOfLastTrend) + " day Trend Ending : " + date);
-							trendLength = 14 - lengthOfLastTrend;
+							if (lengthOfLastTrend > previousBestFitGroup.size()) {
+								//trend exists as part of the current group
+								for (int k = previousBestFitGroup.size(); k < lengthOfLastTrend; k++) {
+									currentBestFitGroup.remove(0);
+								}
+							} else {
+								//trend is part of the previous group
+								for(int k = previousBestFitGroup.size(); k > lengthOfLastTrend; k--) {
+									currentBestFitGroup.add(0, previousBestFitGroup.get(k - 1));
+								}
+							}
+							
+							currentBestFitGroup.trimToSize();
+							previousBestFitGroup.trimToSize();
+							Integer totalLengthOfPriorTrend;
+							
+							//if the current trend doesn't match prior trend it means the prior trend was a group of Negative
+							if (freshTrend) {
+								//if this originated off of a brand new trend
+								totalLengthOfPriorTrend = lengthOfLastTrend;
+								System.out.println("Negative " + (totalLengthOfPriorTrend) + " day Trend Ending : " + date);
+							} else {
+								//if this change is from an previous exsisting trend. 
+								totalLengthOfPriorTrend = trendLength + lengthOfLastTrend;
+								System.out.println("Negaive " + (totalLengthOfPriorTrend) + " day Trend Ending : " + date);
+							}
+							
+							
+							//as a change has happened we are now on a new trend. 
+							freshTrend = true;
+							
+							//TODO: this will need to be altered
+							trendLength = 7 + (previousBestFitGroup.size() - lengthOfLastTrend);
 						}
 					} else {
 						//negative 7 day trend found
@@ -177,20 +203,47 @@ public class AdvancedTrader extends Trader {
 						} else if (lastTrendDirection == null) {
 							//if this is the first trend 							
 						}else {
-							Integer lengthOfLastTrend = getHighestIndex(previousBestFitGroup, currentBestFitGroup) + 1;
+							ArrayList<BigDecimal> combinedIndex = new ArrayList<BigDecimal>();
+							combinedIndex.addAll(previousBestFitGroup);
+							combinedIndex.addAll(currentBestFitGroup);
+							
+							Integer lengthOfLastTrend = getHighestIndex(combinedIndex) + 1;
 							addTrend(lastTrendDirection, trendLength);
-							if (freshTrend) {
-								if (lengthOfLastTrend > trendLength) {
-									System.out.println("Positive " + (trendLength + lengthOfLastTrend) + " day Trend Ending : " + date);
-									trendLength = 14 - lengthOfLastTrend;
-								} else {
-									
+							
+							if (lengthOfLastTrend > previousBestFitGroup.size()) {
+								//trend exists as part of the current group
+								for (int k = previousBestFitGroup.size(); k < lengthOfLastTrend; k++) {
+									currentBestFitGroup.remove(0);
+								}
+							} else {
+								//trend is part of the previous group
+								for(int k = previousBestFitGroup.size(); k > lengthOfLastTrend; k--) {
+									currentBestFitGroup.add(0, previousBestFitGroup.get(k - 1));
 								}
 							}
 							
+							currentBestFitGroup.trimToSize();
+							previousBestFitGroup.trimToSize();
+							Integer totalLengthOfPriorTrend;
+							
 							//if the current trend doesn't match prior trend it means the prior trend was a group of positives
-							System.out.println("Positive " + (trendLength + lengthOfLastTrend) + " day Trend Ending : " + date);
-							trendLength = 14 - lengthOfLastTrend;
+							if (freshTrend) {
+								
+								//if this originated off of a brand new trend
+								totalLengthOfPriorTrend = lengthOfLastTrend;
+								System.out.println("Positive " + (totalLengthOfPriorTrend) + " day Trend Ending : " + date);
+							} else {
+								//if this change is from an previous exsisting trend. 
+								totalLengthOfPriorTrend = trendLength + lengthOfLastTrend;
+								System.out.println("Positive " + (totalLengthOfPriorTrend) + " day Trend Ending : " + date);
+							}
+							
+							
+							//as a change has happened we are now on a new trend. 
+							freshTrend = true;
+							
+							//TODO: this will need to be altered
+							trendLength = 7 + (previousBestFitGroup.size() - lengthOfLastTrend);
 						}
 					}
 					

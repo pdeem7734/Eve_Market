@@ -79,7 +79,7 @@ public class AdvancedTrader extends Trader {
 	@Override
 	public Trade[] suggestTrades() {
 		//we are going to start out with some basic trend analysis
-		Trade trade1 = new Trade(new Integer(8529), "Meta 4 Large Shiled Extender");
+		Trade trade1 = new Trade(new Integer(8529), "Meta 4 Large Shield Extender");
 		marketData.loadCrestInfo(425, new Trade[] {trade1});
 		
 		ArrayList<TrendDirection> trendIndex = new ArrayList<TrendDirection>();
@@ -147,7 +147,7 @@ public class AdvancedTrader extends Trader {
 							//if this is the start of a new trend
 							freshTrend = false;
 						} else if (lastTrendDirection == null) {
-							//if this is the first trend 							
+							//if this is the first trend							
 						} else {
 							ArrayList<BigDecimal> combinedIndex = new ArrayList<BigDecimal>();
 							combinedIndex.addAll(previousBestFitGroup);
@@ -228,7 +228,6 @@ public class AdvancedTrader extends Trader {
 							
 							//if the current trend doesn't match prior trend it means the prior trend was a group of positives
 							if (freshTrend) {
-								
 								//if this originated off of a brand new trend
 								totalLengthOfPriorTrend = lengthOfLastTrend;
 								System.out.println("Positive " + (totalLengthOfPriorTrend) + " day Trend Ending : " + date);

@@ -4,17 +4,17 @@ import java.math.*;
 import java.util.*;
 
 public class MarketTrend {
-	private ArrayList<BigDecimal> prices; 
+	private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(); 
 	
 	private AdvancedTrader.TrendDirection direction;
 	private Integer itemID;
 	private Integer length;
 	
 	MarketTrend(Integer itemID, AdvancedTrader.TrendDirection direction, ArrayList<BigDecimal> prices) {
-		this.prices = prices;
+		this.prices.addAll(prices);
 		this.direction = direction;
 		this.itemID = itemID;
-		this.length = prices.size();
+		this.length = this.prices.size();
 	}
 	
 	public ArrayList<BigDecimal> getPrices() {
@@ -34,11 +34,44 @@ public class MarketTrend {
 		return itemID;
 	}
 	
-	public BigDecimal getStart() {
+	public BigDecimal getStartValue() {
 		return prices.get(0);
 	}
 	
-	public BigDecimal getEnd() {
+	public BigDecimal getEndValue() {
 		return prices.get(prices.size() - 1);
+	}
+	
+	public BigDecimal getPercentageChange() {
+		return getPriceDifference().divide(getStartValue(), 4).multiply(new BigDecimal(100));
+	}
+	
+	public BigDecimal getPriceDifference() {
+		return getEndValue().subtract(getStartValue());
+	}
+	public void printTrend() {
+		switch (direction) {
+		case UP:
+			System.out.println("Positive " + (length) + " day trend");
+			System.out.println("  Start Value       : " + getStartValue());
+			System.out.println("  End Value         : " + getEndValue());
+			System.out.println("  Price Difference  : " + getPriceDifference());
+			System.out.println("  Percentage Change : " + getPercentageChange());
+			break;
+		case DOWN:
+			System.out.println("Negative " + (length) + " day trend");
+			System.out.println("  Start Value       : " + getStartValue());
+			System.out.println("  End Value         : " + getEndValue());
+			System.out.println("  Price Difference  : " + getPriceDifference());
+			System.out.println("  Percentage Change : " + getPercentageChange());
+			break;
+		default:
+			break;
+		}
+	}
+	public void removeAllPrices() {
+		prices.removeAll(prices);
+		prices.trimToSize();
+		length = prices.size();
 	}
 }

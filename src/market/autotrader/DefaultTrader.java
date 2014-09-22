@@ -59,14 +59,14 @@ public class DefaultTrader extends Trader {
 					//most recent average - this average 
 					priceDifferences.add(mostRecentDayAverage.subtract(big[0]));
 				}
-				average = average.divide(new BigDecimal(marketData.crestData.get(itemID).values().size()), 4);
+				average = average.divide(new BigDecimal(marketData.crestData.get(itemID).values().size()), 4, RoundingMode.HALF_UP);
 				
 				//calculate average change -1 because the price difference contained today - today
 				BigDecimal averageChange = new BigDecimal(0);
 				for (BigDecimal big: priceDifferences) {
 					averageChange = averageChange.add(big);
 				}
-				averageChange = averageChange.divide(new BigDecimal(priceDifferences.size() - 1), 4);
+				averageChange = averageChange.divide(new BigDecimal(priceDifferences.size() - 1), 4, RoundingMode.HALF_UP);
 
 				//item has been validated
 				if (averageChange.compareTo(average.multiply(new BigDecimal(-.05))) > 0) {
@@ -138,7 +138,7 @@ public class DefaultTrader extends Trader {
 				profitISK = curentItemData[1].subtract(curentItemData[0]);
 				trade.setProfitInISK(profitISK);
 				
-				profitPercent = profitISK.divide(curentItemData[0],4,BigDecimal.ROUND_HALF_UP);
+				profitPercent = profitISK.divide(curentItemData[0], 4,BigDecimal.ROUND_HALF_UP);
 				trade.setProfitPercentage(profitPercent);
 				
 				//if the percentage is in the acceptable range add the item ID to the list

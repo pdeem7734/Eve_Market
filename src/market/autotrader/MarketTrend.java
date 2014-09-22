@@ -43,7 +43,7 @@ public class MarketTrend {
 	}
 	
 	public BigDecimal getPercentageChange() {
-		return getPriceDifference().divide(getStartValue(), 4).multiply(new BigDecimal(100));
+		return getPriceDifference().divide(getStartValue(), 10, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
 	}
 	
 	public BigDecimal getPriceDifference() {

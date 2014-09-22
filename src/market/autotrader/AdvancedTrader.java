@@ -89,9 +89,9 @@ public class AdvancedTrader extends Trader {
 	@Override
 	public Trade[] suggestTrades() {		
 		//we are going to start out with some basic trend analysis
-		Trade trade1 = new Trade(new Integer(8529), "Meta 4 Large Shield Extender");
+		Trade trade1 = new Trade(new Integer(29668), "Meta 4 Large Shield Extender");
 		marketData.loadCrestInfo(425, new Trade[] {trade1});
-		TreeMap<String, BigDecimal[]> historicalData = marketData.crestData.get(new Integer(8529));
+		TreeMap<String, BigDecimal[]> historicalData = marketData.crestData.get(new Integer(29668));
 		
 		BigDecimal currentSlope = new BigDecimal(0);
 		
@@ -154,10 +154,10 @@ public class AdvancedTrader extends Trader {
 			sumXY = sumXY.add(listToFit.get(i).multiply(new BigDecimal(i + 1)));
 			sumX2 = sumX2.add(new BigDecimal(i + 1).multiply(new BigDecimal(i + 1)));
 		}
-		xMean = sumX.divide(new BigDecimal(listToFit.size()), 5);
-		yMean = sumY.divide(new BigDecimal(listToFit.size()), 5);
+		xMean = sumX.divide(new BigDecimal(listToFit.size()), 10, RoundingMode.HALF_UP);
+		yMean = sumY.divide(new BigDecimal(listToFit.size()), 10, RoundingMode.HALF_UP);
 		
-		returnSlope = sumXY.subtract(sumX.multiply(yMean)).divide(sumX2.subtract(sumX.multiply(xMean)), 5);
+		returnSlope = sumXY.subtract(sumX.multiply(yMean)).divide(sumX2.subtract(sumX.multiply(xMean)), 10, RoundingMode.HALF_UP);
 		return returnSlope;
 	}
 	
@@ -175,7 +175,7 @@ public class AdvancedTrader extends Trader {
 		for (BigDecimal element : arg) {
 			avg = avg.add(element);
 		}
-		avg = avg.divide(new BigDecimal(arg.length), 2);
+		avg = avg.divide(new BigDecimal(arg.length), 2, RoundingMode.HALF_UP);
 		return avg;
 	}
 	

@@ -12,7 +12,6 @@ public class AdvancedTrader extends Trader {
 	ArrayList<BigDecimal> previousBestFitGroup = new ArrayList<BigDecimal>();
 	boolean freshTrend = true;
 	
-	
 	ArrayList<MarketTrend> itemTrends = new ArrayList<MarketTrend>();
 	MarketTrend currentMarketTrend = null;
 	MarketTrend previousMarketTrend = null;
@@ -33,7 +32,6 @@ public class AdvancedTrader extends Trader {
 			//if this is the start of a new trend
 			freshTrend = false;
 		} else if (lastTrendDirection == null) {
-			//if this is the first trend
 			//create the first market trend
 			currentMarketTrend = new MarketTrend(trade1.getItemID(), currentTrendDirection, currentBestFitGroup);
 		} else {
@@ -73,12 +71,75 @@ public class AdvancedTrader extends Trader {
 				//if this originated off of a brand new trend
 				previousMarketTrend.removeAllPrices();
 				previousMarketTrend.addPrices(previousBestFitGroup);
-				previousMarketTrend.printTrend();
 			} else {
 				//if this change is from an previous existing trend.
 				previousMarketTrend.addPrices(previousBestFitGroup);
-				previousMarketTrend.printTrend();
 			}
+			
+			previousMarketTrend.printTrend();
+			itemTrends.add(new MarketTrend(previousMarketTrend));
+			
+			//as a change has happened we are now on a new trend. 
+			freshTrend = true;
+		}
+	}
+	
+	private void checkLastTrend(Trade trade1) {
+		if (currentTrendDirection == lastTrendDirection && !freshTrend) {
+			//if we are continuing a current trend
+			currentMarketTrend.addPrices(previousBestFitGroup);
+			currentMarketTrend.printTrend();
+		} else if (currentTrendDirection == lastTrendDirection && freshTrend) {
+			//if this is the start of a new trend
+			freshTrend = false;
+			currentMarketTrend.printTrend();
+		} else {
+			ArrayList<BigDecimal> combinedIndex = new ArrayList<BigDecimal>();
+			combinedIndex.addAll(previousBestFitGroup);
+			combinedIndex.addAll(currentBestFitGroup);
+			Integer lengthOfLastTrend;
+			
+			if (currentTrendDirection == TrendDirection.UP) {
+				lengthOfLastTrend = getLowestIndex(combinedIndex) + 1;
+			} else {
+				lengthOfLastTrend = getHighestIndex(combinedIndex) + 1;
+			}
+			
+			if (lengthOfLastTrend > previousBestFitGroup.size()) {
+				//trend exists as part of the current group
+				for (int k = previousBestFitGroup.size(); k < lengthOfLastTrend; k++) {
+					previousBestFitGroup.add(currentBestFitGroup.get(0));
+					currentBestFitGroup.remove(0);
+				}
+			} else {
+				//trend is part of the previous group
+				for(int k = previousBestFitGroup.size(); k > lengthOfLastTrend; k--) {
+					currentBestFitGroup.add(0, previousBestFitGroup.get(k - 1));
+					previousBestFitGroup.remove(k - 1);
+				}
+			}
+			
+			previousMarketTrend = currentMarketTrend;
+			currentMarketTrend = new MarketTrend(trade1.itemID, currentTrendDirection, currentBestFitGroup);
+			
+			currentBestFitGroup.trimToSize();
+			previousBestFitGroup.trimToSize();
+			
+			//if the current trend doesn't match prior trend it means the prior trend was a group of Negative
+			if (freshTrend) {
+				//if this originated off of a brand new trend
+				previousMarketTrend.removeAllPrices();
+				previousMarketTrend.addPrices(previousBestFitGroup);				
+			} else {
+				//if this change is from an previous existing trend.
+				previousMarketTrend.addPrices(previousBestFitGroup);
+			}
+			
+			previousMarketTrend.printTrend();
+			currentMarketTrend.printTrend();
+			
+			itemTrends.add(new MarketTrend(previousMarketTrend));
+			itemTrends.add(new MarketTrend(currentMarketTrend));
 			
 			//as a change has happened we are now on a new trend. 
 			freshTrend = true;
@@ -103,18 +164,15 @@ public class AdvancedTrader extends Trader {
 				
 				if (currentBestFitGroup.size() >= 7) {
 					currentSlope = getBestFitSlope(currentBestFitGroup);
+					
 					//we are only going to test it's sign at the moment
 					if (currentSlope.compareTo(new BigDecimal(0)) > 0) {
-						//positive 7 day trend found
 						currentTrendDirection = TrendDirection.UP;						
-						checkCurrentTrend(trade1);
-						
 					} else {
-						//negative 7 day trend found
 						currentTrendDirection = TrendDirection.DOWN;
-						checkCurrentTrend(trade1);
 					}
 					
+					checkCurrentTrend(trade1);
 					
 					//set all current values to previous values and reset the current values
 					previousBestFitGroup.clear();
@@ -132,8 +190,8 @@ public class AdvancedTrader extends Trader {
 				//TODO: add logic so this step isn't required
 			}
 		}
-		
-		System.out.println("Curent Trend Direction        : " + currentTrendDirection);
+		checkLastTrend(trade1);
+
 		return null;
 	}
 
@@ -212,9 +270,7 @@ public class AdvancedTrader extends Trader {
 			adv.suggestTrades();
 		} else {
 			System.out.println("Unable to connect");
-		}
-		
-		
+		}	
 	}	
 }
 

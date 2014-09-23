@@ -10,10 +10,17 @@ public class MarketTrend {
 	private Integer itemID;
 	private Integer length;
 	
-	MarketTrend(Integer itemID, AdvancedTrader.TrendDirection direction, ArrayList<BigDecimal> prices) {
+	public MarketTrend(Integer itemID, AdvancedTrader.TrendDirection direction, ArrayList<BigDecimal> prices) {
 		this.prices.addAll(prices);
 		this.direction = direction;
 		this.itemID = itemID;
+		this.length = this.prices.size();
+	}
+	
+	public MarketTrend(MarketTrend copyTrend) {
+		this.prices.addAll(copyTrend.prices);
+		this.direction = copyTrend.direction;
+		this.itemID = copyTrend.itemID;
 		this.length = this.prices.size();
 	}
 	

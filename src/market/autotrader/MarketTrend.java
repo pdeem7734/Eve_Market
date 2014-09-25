@@ -81,4 +81,40 @@ public class MarketTrend {
 		prices.trimToSize();
 		length = prices.size();
 	}
+	
+	public BigDecimal getHighestConvolution(MarketTrend comparsionData) {
+		BigDecimal highestConvolution = new BigDecimal(0);
+		BigDecimal tempConvolution;
+		BigDecimal[] tempArray = new BigDecimal[comparsionData.length - 1];
+		BigDecimal comparsionMean;
+		BigDecimal thisMean;
+		
+		comparsionMean = getAverage(comparsionData.prices.toArray(new BigDecimal[comparsionData.length]));
+		
+		for(int k = 0; k < (this.length - comparsionData.length + 1);k++) {
+			System.arraycopy(prices.toArray(new BigDecimal[prices.size()]), k, tempArray, 0, comparsionData.length - 1);
+			
+			thisMean = getAverage(tempArray);
+			//need to calculate the average of both before this step
+			tempConvolution = new BigDecimal(0);
+			for(int i = 0; i < tempArray.length; i++){
+				tempConvolution = tempConvolution.add(comparsionData.prices.get(i).subtract(comparsionMean).multiply(tempArray[i].subtract(thisMean))); 
+			}
+			if(tempConvolution.compareTo(highestConvolution) > 0 || k == 0) {
+				highestConvolution = tempConvolution;
+			}
+			tempConvolution = null;
+		}
+		return highestConvolution;
+	}
+	
+	//I really need to take the time to make a package for this crap
+	private BigDecimal getAverage(BigDecimal[] arg) {
+		BigDecimal avg = new BigDecimal(0);
+		for (BigDecimal element : arg) {
+			avg = avg.add(element);
+		}
+		avg = avg.divide(new BigDecimal(arg.length), 2, RoundingMode.HALF_UP);
+		return avg;
+	}
 }

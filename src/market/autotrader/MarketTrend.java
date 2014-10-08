@@ -82,12 +82,15 @@ public class MarketTrend {
 		length = prices.size();
 	}
 	
+	//TODO: update to show the index at which the highest convolution occurs
+	//better option is going to be to just make a new class for trend comparsion
 	public BigDecimal getHighestConvolution(MarketTrend comparsionData) {
 		BigDecimal highestConvolution = new BigDecimal(0);
 		BigDecimal tempConvolution;
 		BigDecimal[] tempArray = new BigDecimal[comparsionData.length - 1];
 		BigDecimal comparsionMean;
 		BigDecimal thisMean;
+		Integer indexForConvolution = new Integer(0);
 		
 		comparsionMean = getAverage(comparsionData.prices.toArray(new BigDecimal[comparsionData.length]));
 		
@@ -101,6 +104,7 @@ public class MarketTrend {
 				tempConvolution = tempConvolution.add(comparsionData.prices.get(i).subtract(comparsionMean).multiply(tempArray[i].subtract(thisMean))); 
 			}
 			if(tempConvolution.compareTo(highestConvolution) > 0 || k == 0) {
+				indexForConvolution = new Integer(k);
 				highestConvolution = tempConvolution;
 			}
 			tempConvolution = null;

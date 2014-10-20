@@ -192,13 +192,14 @@ public class AdvancedTrader extends Trader {
 		}
 		checkLastTrend(trade1);
 		BigDecimal highestConvolution = new BigDecimal(0);
-		BigDecimal tempConvolution;
+		BigDecimal[] tempConvolution;
 		for(int k = 0; k < itemTrends.size() -1; k ++){
 			tempConvolution = itemTrends.get(k).getHighestConvolution(itemTrends.get(itemTrends.size() - 1));
-			if (tempConvolution.compareTo(highestConvolution) > 0) {
-				highestConvolution = tempConvolution;
+			if (tempConvolution[0].compareTo(highestConvolution) > 0) {
+				highestConvolution = tempConvolution[0];
 			}
-			System.out.println("Returned Highest Convolution: " + tempConvolution);
+			System.out.println("Returned Highest Convolution: " + tempConvolution[0]);
+			System.out.println("  Index at: " + tempConvolution[1]);
 		}
 		
 		System.out.println("Global Max Convolution: " + highestConvolution);

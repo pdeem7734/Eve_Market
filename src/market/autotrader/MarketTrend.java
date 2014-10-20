@@ -83,19 +83,29 @@ public class MarketTrend {
 	}
 	
 	//TODO: update to show the index at which the highest convolution occurs
-	//better option is going to be to just make a new class for trend comparsion
-	public BigDecimal getHighestConvolution(MarketTrend comparsionData) {
+	//better option is going to be to just make a new class for trend comparison
+	public BigDecimal[] getHighestConvolution(MarketTrend comparsionData) {
 		BigDecimal highestConvolution = new BigDecimal(0);
 		BigDecimal tempConvolution;
-		BigDecimal[] tempArray = new BigDecimal[comparsionData.length - 1];
+		BigDecimal[] tempArray;
 		BigDecimal comparsionMean;
 		BigDecimal thisMean;
+		BigDecimal[] returnValue = new BigDecimal[2];
 		Integer indexForConvolution = new Integer(0);
 		
 		comparsionMean = getAverage(comparsionData.prices.toArray(new BigDecimal[comparsionData.length]));
 		
-		for(int k = 0; k < (this.length - comparsionData.length + 1);k++) {
-			System.arraycopy(prices.toArray(new BigDecimal[prices.size()]), k, tempArray, 0, comparsionData.length - 1);
+		//iterate over the entire set
+		for(int k = 0; k < (this.length - 1);k++) {
+			
+			int elementsToCopy = 0;
+			
+			if (comparsionData.length > (this.length - k)) {
+				elementsToCopy = this.length - k - 1;
+			} else elementsToCopy = comparsionData.length - 1; 
+			
+			tempArray = new BigDecimal[elementsToCopy];
+			System.arraycopy(prices.toArray(new BigDecimal[prices.size()]), k, tempArray, 0, elementsToCopy);
 			
 			thisMean = getAverage(tempArray);
 			//need to calculate the average of both before this step
@@ -109,7 +119,10 @@ public class MarketTrend {
 			}
 			tempConvolution = null;
 		}
-		return highestConvolution;
+		
+		returnValue[0] = highestConvolution;
+		returnValue[1] = new BigDecimal(indexForConvolution);
+		return returnValue;
 	}
 	
 	//I really need to take the time to make a package for this crap

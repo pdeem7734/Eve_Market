@@ -150,7 +150,7 @@ public class AdvancedTrader extends Trader {
 	@Override
 	public Trade[] suggestTrades() {		
 		//we are going to start out with some basic trend analysis
-		Trade trade1 = new Trade(new Integer(29668), "Meta 4 Large Shield Extender");
+		Trade trade1 = new Trade(new Integer(29668), "PLEX");
 		marketData.loadCrestInfo(425, new Trade[] {trade1});
 		TreeMap<String, BigDecimal[]> historicalData = marketData.crestData.get(new Integer(29668));
 		
@@ -190,7 +190,10 @@ public class AdvancedTrader extends Trader {
 				//TODO: add logic so this step isn't required
 			}
 		}
+		
 		checkLastTrend(trade1);
+		
+		//checks and gets the highest convolution for the set to match again the potential maximum to get a degree of accuracy on the given recomendation
 		BigDecimal highestConvolution = new BigDecimal(0);
 		BigDecimal[] tempConvolution;
 		for(int k = 0; k < itemTrends.size() -1; k ++){
@@ -203,6 +206,10 @@ public class AdvancedTrader extends Trader {
 		}
 		
 		System.out.println("Global Max Convolution: " + highestConvolution);
+		
+		//this step will compare the current highest reutrn to a potential perfect match to get the degree of accuracy in the recomendation. 
+		System.out.println("Percentage Match: " + highestConvolution.divide(itemTrends.get(itemTrends.size() - 1).getPerfectConvolution(), 4, RoundingMode.HALF_UP));
+		
 		return null;
 	}
 

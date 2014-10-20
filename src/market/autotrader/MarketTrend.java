@@ -125,6 +125,17 @@ public class MarketTrend {
 		return returnValue;
 	}
 	
+	public BigDecimal getPerfectConvolution() {
+		BigDecimal returnValue = new BigDecimal(0);
+		BigDecimal average = getAverage(this.prices.toArray(new BigDecimal[this.length -1]));
+		for (BigDecimal price: prices) {
+			BigDecimal workingPrice = price.subtract(average);
+			returnValue = returnValue.add(workingPrice.multiply(workingPrice));
+		}
+		
+		return returnValue;
+	}
+	
 	//I really need to take the time to make a package for this crap
 	private BigDecimal getAverage(BigDecimal[] arg) {
 		BigDecimal avg = new BigDecimal(0);

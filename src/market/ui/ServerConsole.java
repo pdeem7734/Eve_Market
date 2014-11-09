@@ -38,6 +38,9 @@ public class ServerConsole {
 					startCRESTTransfer();		
 					startEVECentralTransfer();
 					break;
+				case "-h":
+					printHelp();
+					break;
 				default:
 					System.out.println("Unrecoginized command");
 				}
@@ -47,6 +50,13 @@ public class ServerConsole {
 		}
 	}
 	
+	private void printHelp() {
+		System.out.println("'-ss'    : Will set the server location");
+		System.out.println("'-tc'    : Will test the current connection");
+		System.out.println("'-up'    : Will start a full update from both crest and eve-central");
+		System.out.println("'-exit'  : Will exit the server console to return to the main console");
+	}
+
 	//basic method to allow you to test the connection to the SQL server
 	private boolean testConnection() {
 		if (sqlConnection.testConnection()) {

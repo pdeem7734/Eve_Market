@@ -193,7 +193,8 @@ public class AdvancedTrader extends Trader {
 		
 		checkLastTrend(trade1);
 		
-		//checks and gets the highest convolution for the set to match again the potential maximum to get a degree of accuracy on the given recomendation
+		//TODO: Update below to calculate the convolution against the entire price array as opposed to only calculating against individual trends.
+		//checks and gets the highest convolution for the set to match again the potential maximum to get a degree of accuracy on the given recommendation
 		BigDecimal highestConvolution = new BigDecimal(0); //0 is the convolution value, 1 start index within that trend
 		BigDecimal[] tempConvolution;
 		BigDecimal errorDegree;
@@ -206,7 +207,6 @@ public class AdvancedTrader extends Trader {
 				convolutionStartIndex = Integer.parseInt(tempConvolution[1].toString());
 				matchedTrendIndex = k;
 			}
-		}
 		
 		//this step will compare the current highest return to a potential perfect match to get the degree of accuracy in the recommendation. 
 		errorDegree = highestConvolution.divide(itemTrends.get(itemTrends.size() - 1).getPerfectConvolution(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).subtract(new BigDecimal(100));
@@ -219,6 +219,7 @@ public class AdvancedTrader extends Trader {
 		MarketTrend lastMarketTrend = itemTrends.get(itemTrends.size() - 1);
 		BigDecimal matchedAverage = getAverage(matchedTrendArray.toArray(new BigDecimal[matchedTrendArray.size() -1]));
 		
+		//TODO: Fix this as it will currently only work so long as there is an additional element to be pulled from
 		BigDecimal nextValueFromMatchedTrend = matchedTrendArray.get(convolutionStartIndex + lastMarketTrend.getPrices().size() + 1);
 		
 		//this is based off of ISK Value

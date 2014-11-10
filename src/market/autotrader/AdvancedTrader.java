@@ -207,6 +207,7 @@ public class AdvancedTrader extends Trader {
 				convolutionStartIndex = Integer.parseInt(tempConvolution[1].toString());
 				matchedTrendIndex = k;
 			}
+		}
 		
 		//this step will compare the current highest return to a potential perfect match to get the degree of accuracy in the recommendation. 
 		errorDegree = highestConvolution.divide(itemTrends.get(itemTrends.size() - 1).getPerfectConvolution(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).subtract(new BigDecimal(100));

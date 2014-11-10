@@ -158,7 +158,7 @@ public class AdvancedTrader extends Trader {
 		
 		//this will iterate from the start date to the end date.
 		for(String date : historicalData.keySet()) {
-			try {			
+			try {	
 				//puts the elements in the current best fit group does logic if it's filled the 7 days
 				currentBestFitGroup.add(historicalData.get(date)[4]);
 				
@@ -194,21 +194,41 @@ public class AdvancedTrader extends Trader {
 		checkLastTrend(trade1);
 		
 		//checks and gets the highest convolution for the set to match again the potential maximum to get a degree of accuracy on the given recomendation
-		BigDecimal highestConvolution = new BigDecimal(0);
+		BigDecimal highestConvolution = new BigDecimal(0); //0 is the convolution value, 1 start index within that trend
 		BigDecimal[] tempConvolution;
+		BigDecimal errorDegree;
+		int matchedTrendIndex = 0;
+		int convolutionStartIndex = 0; 
 		for(int k = 0; k < itemTrends.size() -1; k ++){
 			tempConvolution = itemTrends.get(k).getHighestConvolution(itemTrends.get(itemTrends.size() - 1));
 			if (tempConvolution[0].compareTo(highestConvolution) > 0) {
 				highestConvolution = tempConvolution[0];
+				convolutionStartIndex = Integer.parseInt(tempConvolution[1].toString());
+				matchedTrendIndex = k;
 			}
-			System.out.println("Returned Highest Convolution: " + tempConvolution[0]);
-			System.out.println("  Index at: " + tempConvolution[1]);
 		}
 		
-		System.out.println("Global Max Convolution: " + highestConvolution);
+		//this step will compare the current highest return to a potential perfect match to get the degree of accuracy in the recommendation. 
+		errorDegree = highestConvolution.divide(itemTrends.get(itemTrends.size() - 1).getPerfectConvolution(), 4, RoundingMode.HALF_UP).multiply(new BigDecimal(100)).subtract(new BigDecimal(100));
+		System.out.println("Estimated Degree of error : " + errorDegree);
 		
-		//this step will compare the current highest reutrn to a potential perfect match to get the degree of accuracy in the recomendation. 
-		System.out.println("Percentage Match: " + highestConvolution.divide(itemTrends.get(itemTrends.size() - 1).getPerfectConvolution(), 4, RoundingMode.HALF_UP));
+		//now using the degree of accuracy we will come up with an estimate of where the price of this given item will be.
+		//starting will just be a basic return function to get the next value combined with the degree of error
+		
+		ArrayList<BigDecimal> matchedTrendArray = itemTrends.get(matchedTrendIndex).getPrices();
+		MarketTrend lastMarketTrend = itemTrends.get(itemTrends.size() - 1);
+		BigDecimal matchedAverage = getAverage(matchedTrendArray.toArray(new BigDecimal[matchedTrendArray.size() -1]));
+		
+		BigDecimal nextValueFromMatchedTrend = matchedTrendArray.get(convolutionStartIndex + lastMarketTrend.getPrices().size() + 1);
+		
+		//this is based off of ISK Value
+		BigDecimal expectedOutcome = nextValueFromMatchedTrend.subtract(matchedAverage).add(lastMarketTrend.getAveragePrice());
+		System.out.println("Expected outcome : " + expectedOutcome);
+		
+		//this return is based off of % devation from average
+		BigDecimal perExpectedOutcome = nextValueFromMatchedTrend.divide(matchedAverage, 10, RoundingMode.HALF_UP).multiply(lastMarketTrend.getAveragePrice());
+		System.out.println("Percent Expected Outcome : " + perExpectedOutcome);
+		
 		
 		return null;
 	}

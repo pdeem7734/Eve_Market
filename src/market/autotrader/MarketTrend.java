@@ -5,7 +5,6 @@ import java.util.*;
 
 public class MarketTrend {
 	private ArrayList<BigDecimal> prices = new ArrayList<BigDecimal>(); 
-	
 	private AdvancedTrader.TrendDirection direction;
 	private Integer itemID;
 	private Integer length;
@@ -56,6 +55,11 @@ public class MarketTrend {
 	public BigDecimal getPriceDifference() {
 		return getEndValue().subtract(getStartValue());
 	}
+	
+	public BigDecimal getAveragePrice() {
+		return getAverage(prices.toArray(new BigDecimal[prices.size()-1]));
+	}
+	
 	public void printTrend() {
 		switch (direction) {
 		case UP:
